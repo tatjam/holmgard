@@ -8,7 +8,7 @@ class GameState;
 
 // A scene that's implemented in lua. Most of the game scenes work like this
 // Scenes are created INSIDE the universe lua state
-// Scene lua files have the following globals: osp, gui_input
+// Scene lua files have the following globals: hgr, gui_input
 // Furthermore, they may implement load, update, render, unload and get_camera_uniforms functions
 // For the get_camera_uniforms, you must return a CameraUniforms object (see examples in core/)
 // Passed arguments can be received on "load"
@@ -27,9 +27,9 @@ public:
 
 	void load() override;
 	// It's your responsability to call universe->update(dt) (or not)
-	// Gets passed osp->dt
+	// Gets passed hgr->dt
 	void pre_update() override;
-	// Aditionally, lua gets passed osp->dt
+	// Aditionally, lua gets passed hgr->dt
 	void update() override;
 	void physics_update(double bdt) override;
 	void render() override;

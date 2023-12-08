@@ -23,8 +23,8 @@ void LuaAssets::load_to(sol::table& table)
 	table.set_function("get_" cls_name, [](sol::this_environment te, const std::string& path) 					\
 	{                                      \
     	sol::environment& env = te;        																		\
-    	auto[pkg, name] = osp->assets->get_package_and_name(path, env["__pkg"].get_or(std::string("core"))); 	\
-        cls* ast = osp->assets->get<cls>(pkg, name, true);               \
+    	auto[pkg, name] = hgr->assets->get_package_and_name(path, env["__pkg"].get_or(std::string("core"))); 	\
+        cls* ast = hgr->assets->get<cls>(pkg, name, true);               \
         return std::move(LuaAssetHandle<cls>(pkg, name, ast));													\
 	});                                    																		\
 
@@ -73,14 +73,14 @@ void LuaAssets::load_to(sol::table& table)
 
 	table.set_function("get_udata_vehicle", [](const std::string& name)
 	{
-		logger->check(osp->assets->is_path_safe(name), "Path {} is unsafe and may access external files", name);
+		logger->check(hgr->assets->is_path_safe(name), "Path {} is unsafe and may access external files", name);
 		std::string fix_name = name;
 		// Remove start '/' as udata_path/vehicles/ already contains it
 		while(fix_name[0] == '/')
 		{
 			fix_name = fix_name.substr(1);
 		}
-		std::string full_path = osp->assets->udata_path + "vehicles/" + name;
+		std::string full_path = hgr->assets->udata_path + "vehicles/" + name;
 
 		return SerializeUtil::load_file(full_path);
 	});

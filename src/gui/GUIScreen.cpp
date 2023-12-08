@@ -70,12 +70,12 @@ void GUIScreen::draw()
 {
 	for(auto o : canvas)
 	{
-		o.first->draw(osp->renderer->vg, skin.get(), viewport);
+		o.first->draw(hgr->renderer->vg, skin.get(), viewport);
 	}
-	win_manager.draw(osp->renderer->vg, this);
+	win_manager.draw(hgr->renderer->vg, this);
 	for(auto o : post_canvas)
 	{
-		o.first->draw(osp->renderer->vg, skin.get(), viewport);
+		o.first->draw(hgr->renderer->vg, skin.get(), viewport);
 	}
 }
 
@@ -98,7 +98,7 @@ void GUIScreen::new_frame(glm::ivec4 nscreen)
 
 void GUIScreen::new_frame()
 {
-	new_frame(glm::ivec4(0, 0, osp->renderer->get_width(true), osp->renderer->get_height(true)));
+	new_frame(glm::ivec4(0, 0, hgr->renderer->get_width(true), hgr->renderer->get_height(true)));
 }
 
 void GUIScreen::add_canvas(GUICanvas* canvas, glm::ivec2 pos, glm::ivec2 size)

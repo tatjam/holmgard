@@ -19,7 +19,7 @@
 #include "libs/LuaOrbit.h"
 #include "libs/LuaEvents.h"
 
-// Used for setting up "osp" usertype
+// Used for setting up "hgr" usertype
 #include "renderer/Renderer.h"
 #include "audio/AudioEngine.h"
 #include "universe/Universe.h"
@@ -65,17 +65,17 @@ int LoadFileRequire(lua_State* L)
 	else
 	{
 		// WARNING FOR MODDERS: require creates only one instance, use for libraries!
-		auto name = osp->assets->get_filename(path);
+		auto name = hgr->assets->get_filename(path);
 		// Enforce local / class files, which may not be "required"
 		if(name.rfind("l_", 0) == 0 || name.rfind("c_", 0) == 0)
 		{
 			logger->fatal("Tried to require {}, which is meant to be included with dofile / loadfile", path);
 		}
 
-		std::string spath = osp->assets->resolve_path(path, sview["__pkg"]);
+		std::string spath = hgr->assets->resolve_path(path, sview["__pkg"]);
 
 		// The package loader is nothing more than the script itself
-		std::string script = osp->assets->load_string_raw(spath);
+		std::string script = hgr->assets->load_string_raw(spath);
 		sol::load_result fx = sview.load(script, spath);
 		sol::function ffx = fx;
 		sol::stack::push(L, ffx);
@@ -179,13 +179,13 @@ void LuaCore::load(sol::state& to, const std::string& pkg)
 
 	to.add_package_loader(LoadFileRequire, true);
 
-	// We also create OSP usertype (but don't actually set "osp" to a value, as it may not be available)
+	// We also create Holmgard usertype (but don't actually set "hgr" to a value, as it may not be available)
 	// so that all subsystems can be accessed without having many globals
-	to.new_usertype<OSP>("__ut_osp", sol::no_constructor,
-		  "renderer", &OSP::renderer,
-		  "audio_engine", &OSP::audio_engine,
-		  "universe", &OSP::universe,
-		  "game_dt", sol::readonly(&OSP::game_dt));
+	to.new_usertype<Holmgard>("__ut_hgr", sol::no_constructor,
+							  "renderer", &Holmgard::renderer,
+							  "audio_engine", &Holmgard::audio_engine,
+							  "universe", &Holmgard::universe,
+							  "game_dt", sol::readonly(&Holmgard::game_dt));
 
 }
 
@@ -200,13 +200,13 @@ void LuaCore::load(sol::table& to, const std::string& pkg)
 	{
 		sol::environment env = te;
 		sol::state_view sv = ts;
-		auto name = osp->assets->get_filename(path);
+		auto name = hgr->assets->get_filename(path);
 		// Enforce global files, which may not be "dofiled"
 		if(name.rfind("g_", 0) == 0)
 		{
 			logger->fatal("Tried to dofile {}, which is meant to be included with require", path);
 		}
-		std::string spath = osp->assets->resolve_path(path, env["__pkg"]);
+		std::string spath = hgr->assets->resolve_path(path, env["__pkg"]);
 
 		// We load and execute the file, and return the result
 		// We obey the standard and pass errors to the caller with throw
@@ -233,13 +233,13 @@ void LuaCore::load(sol::table& to, const std::string& pkg)
 	{
 		sol::environment env = te;
 		sol::state_view sv = ts;
-		auto name = osp->assets->get_filename(path);
+		auto name = hgr->assets->get_filename(path);
 		// Enforce global files, which may not be "dofiled"
 		if(name.rfind("g_", 0) == 0)
 		{
 			logger->fatal("Tried to loadfile {}, which is meant to be included with require", path);
 		}
-		std::string spath = osp->assets->resolve_path(path, env["__pkg"]);
+		std::string spath = hgr->assets->resolve_path(path, env["__pkg"]);
 
 		sol::load_result lresult = sv.load_file(spath);
 		if(!lresult.valid())

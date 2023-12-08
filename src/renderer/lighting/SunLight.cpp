@@ -31,7 +31,7 @@ SunLight::SunLight(int far_size, int near_size)
 	near_shadow_size = near_size;
 	far_shadow_size = far_size;
 
-	shader = osp->assets->get<Shader>("core", "shaders/light/sunlight.vs");
+	shader = hgr->assets->get<Shader>("core", "shaders/light/sunlight.vs");
 	color = glm::vec3(1.0f, 1.0f, 1.0f);
 	spec_color = glm::vec3(1.0f, 0.8f, 0.8f);
 	ambient_color = glm::vec3(0.1f, 0.1f, 0.1f);
@@ -60,7 +60,7 @@ void SunLight::do_pass(CameraUniforms& cu, GBuffer* gbuf)
 	// TODO: Allow multiple stars somehow
 	if(track_star)
 	{
-		position = osp->universe->system.states_now[osp->universe->system.star].pos;
+		position = hgr->universe->system.states_now[hgr->universe->system.star].pos;
 	}
 	glm::dvec3 sun_pos = position - cu.cam_pos;
 	shader->setVec3("sun_pos", sun_pos);

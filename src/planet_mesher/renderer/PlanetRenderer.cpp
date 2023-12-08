@@ -45,7 +45,7 @@ void PlanetRenderer::render(PlanetTileServer &server, QuadTreePlanet &planet,
 
 		// TODO: Handle non-spherical planets with some kind of ellipsoid
 		glm::dvec3 triplanar_up = tforms.camera_pos;
-		if(osp->renderer->quality.use_planet_detail_map || osp->renderer->quality.use_planet_detail_normal)
+		if(hgr->renderer->quality.use_planet_detail_map || hgr->renderer->quality.use_planet_detail_normal)
 		{
 			shader->setFloat("detail_scale", detail_scale);
 			shader->setFloat("detail_fade", detail_fade);
@@ -71,7 +71,7 @@ void PlanetRenderer::render(PlanetTileServer &server, QuadTreePlanet &planet,
 		bool cw_mode = false;
 		glFrontFace(GL_CCW);
 
-		if(osp->renderer->quality.use_planet_detail_normal || osp->renderer->quality.use_planet_detail_map)
+		if(hgr->renderer->quality.use_planet_detail_normal || hgr->renderer->quality.use_planet_detail_map)
 		{
 			// Adjust triplanar up so it's tiled
 			// TODO: This solution causes quite a bit of jumping when moving between
@@ -335,8 +335,8 @@ void PlanetRenderer::generate_and_upload_index_buffer()
 PlanetRenderer::PlanetRenderer()
 {
 	generate_and_upload_index_buffer();
-	shader = osp->assets->get<Shader>("core", "shaders/planet/tile.vs");
-	water_shader = osp->assets->get<Shader>("core", "shaders/planet/water.vs");
+	shader = hgr->assets->get<Shader>("core", "shaders/planet/tile.vs");
+	water_shader = hgr->assets->get<Shader>("core", "shaders/planet/water.vs");
 	cliff_tex = AssetHandle<Image>("debug_system:planets/earth/textures/cliff.png");
 	top_tex = AssetHandle<Image>("debug_system:planets/earth/textures/grass.png");
 	cliff_nrm = AssetHandle<Image>("debug_system:planets/earth/textures/cliff_nrm.png");
@@ -346,8 +346,8 @@ PlanetRenderer::PlanetRenderer()
 
 PlanetRenderer::~PlanetRenderer()
 {
-	osp->assets->free<Shader>("core", "shaders/planet/tile.vs");
-	osp->assets->free<Shader>("core", "shaders/planet/water.vs");
+	hgr->assets->free<Shader>("core", "shaders/planet/tile.vs");
+	hgr->assets->free<Shader>("core", "shaders/planet/water.vs");
 	glDeleteBuffers(1, &ebo);
 	glDeleteVertexArrays(1, &vao);
 }

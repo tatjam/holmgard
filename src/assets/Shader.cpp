@@ -98,7 +98,7 @@ std::string Shader::preprocessor(const std::string& file)
 				if(token == "quality_defines")
 				{
 					// Add the config defines from RenderConfig
-					final_file += osp->renderer->quality.get_shader_defines();
+					final_file += hgr->renderer->quality.get_shader_defines();
 					final_file += "\n";
 					final_file += "\n#line " + std::to_string(line_num - 1);
 					final_file += "\n";
@@ -106,18 +106,18 @@ std::string Shader::preprocessor(const std::string& file)
 				}
 				else
 				{
-					auto[pk, nm] = osp->assets->get_package_and_name(token, get_asset_pkg());
+					auto[pk, nm] = hgr->assets->get_package_and_name(token, get_asset_pkg());
 					path = pk + ":" + nm;
 				}
 			}
 
-			if(!AssetManager::file_exists(osp->assets->resolve_path(path)))
+			if(!AssetManager::file_exists(hgr->assets->resolve_path(path)))
 			{
 				logger->error("Could not include: {}", path);
 			}
 			else
 			{
-				std::string sfile = osp->assets->load_string(path);
+				std::string sfile = hgr->assets->load_string(path);
 				// Postprocess the file too
 				sfile = preprocessor(sfile);
 				final_file += sfile;

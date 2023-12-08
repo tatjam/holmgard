@@ -5,7 +5,7 @@
 #include "scenes/Scene.h"
 #include "GameStateDebug.h"
 
-class OSP;
+class Holmgard;
 
 // Loads, runs, and stores a game state
 // It consists of a save.toml, and many extra files stored in its folder in udata/saves/...

@@ -18,7 +18,7 @@ static void bullet_tick(btDynamicsWorld* world, btScalar tstep)
 
 void Universe::physics_update(double pdt)
 {
-	osp->game_state->physics_update(pdt);
+	hgr->game_state->physics_update(pdt);
 	// Do the physics update on the system
 	system.update(pdt, bt_world, true);
 
@@ -71,8 +71,8 @@ Universe::Universe() : system(this)
 	uid = 0;
 	paused = false;
 
-	// We set the global OSP so required modules can use it
-	lua_state["osp"] = osp;
+	// We set the global Holmgard so required modules can use it
+	lua_state["hgr"] = hgr;
 
 	bt_collision_config = new btDefaultCollisionConfiguration();
 	bt_dispatcher = new btCollisionDispatcher(bt_collision_config);

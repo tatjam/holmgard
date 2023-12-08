@@ -671,12 +671,12 @@ Renderer::Renderer(cpptoml::table& settings)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	if (type == "windowed")
 	{
-		window = glfwCreateWindow(width, height, "New OSP", nullptr, nullptr);
+		window = glfwCreateWindow(width, height, "New Holmgard", nullptr, nullptr);
 	}
 	// TODO: Allow any monitor from settings
 	else if (type == "fullscreen")
 	{
-		window = glfwCreateWindow(width, height, "New OSP", glfwGetPrimaryMonitor(), NULL);
+		window = glfwCreateWindow(width, height, "New Holmgard", glfwGetPrimaryMonitor(), NULL);
 	}
 	else if (type == "windowed fullscreen")
 	{
@@ -687,7 +687,7 @@ Renderer::Renderer(cpptoml::table& settings)
 		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-		window = glfwCreateWindow(mode->width, mode->height, "New OSP", monitor, NULL);
+		window = glfwCreateWindow(mode->width, mode->height, "New Holmgard", monitor, NULL);
 	}
 
 	if(window == nullptr)
@@ -738,12 +738,12 @@ Renderer::Renderer(cpptoml::table& settings)
 	//vg = nvgCreateGL3(0);
 
 	// Load the default NVG fonts (TODO: Use generic names for this or move it over to package.lua)
-	nvgCreateFont(vg, "regular", (osp->assets->res_path + "core/fonts/Roboto-Regular.ttf").c_str());
-	nvgCreateFont(vg, "bold", (osp->assets->res_path + "core/fonts/Roboto-Bold.ttf").c_str());
-	nvgCreateFont(vg, "light", (osp->assets->res_path + "core/fonts/Roboto-Light.ttf").c_str());
-	nvgCreateFont(vg, "medium", (osp->assets->res_path + "core/fonts/Roboto-Medium.ttf").c_str());
+	nvgCreateFont(vg, "regular", (hgr->assets->res_path + "core/fonts/Roboto-Regular.ttf").c_str());
+	nvgCreateFont(vg, "bold", (hgr->assets->res_path + "core/fonts/Roboto-Bold.ttf").c_str());
+	nvgCreateFont(vg, "light", (hgr->assets->res_path + "core/fonts/Roboto-Light.ttf").c_str());
+	nvgCreateFont(vg, "medium", (hgr->assets->res_path + "core/fonts/Roboto-Medium.ttf").c_str());
 	// This font is meant to be used at exactly size 12
-	nvgCreateFont(vg, "tiny", (osp->assets->res_path + "core/fonts/ProggyTinySZ.ttf").c_str());
+	nvgCreateFont(vg, "tiny", (hgr->assets->res_path + "core/fonts/ProggyTinySZ.ttf").c_str());
 
 	resize(width, height, scale);
 
@@ -805,7 +805,7 @@ void Renderer::env_map_sample()
 
 	for(size_t i = 0; i < samples; i++)
 	{
-		osp->renderer->render_env_face(sample_pos, env_face);
+		hgr->renderer->render_env_face(sample_pos, env_face);
 		env_face++;
 		if (env_face == 6)
 		{

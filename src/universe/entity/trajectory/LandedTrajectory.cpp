@@ -5,7 +5,7 @@
 
 WorldState LandedTrajectory::update(double dt, bool use_bullet)
 {
-	Universe* uv = osp->universe;
+	Universe* uv = hgr->universe;
 	PlanetarySystem& sys = uv->system;
 	WorldState out;
 
@@ -50,8 +50,8 @@ WorldState LandedTrajectory::update(double dt, bool use_bullet)
 
 void LandedTrajectory::update_element_idx()
 {
-	auto it = osp->universe->system.name_to_index.find(elem_name);
-	logger->check(it != osp->universe->system.name_to_index.end(), "Unable to find element named {}", elem_name);
+	auto it = hgr->universe->system.name_to_index.find(elem_name);
+	logger->check(it != hgr->universe->system.name_to_index.end(), "Unable to find element named {}", elem_name);
 
 	cached_elem_index = it->second;
 
@@ -59,7 +59,7 @@ void LandedTrajectory::update_element_idx()
 
 LandedTrajectory::~LandedTrajectory()
 {
-	osp->universe->drop_out_of_event("core:system_update_indices", hndl);
+	hgr->universe->drop_out_of_event("core:system_update_indices", hndl);
 }
 
 
@@ -69,7 +69,7 @@ LandedTrajectory::LandedTrajectory()
 	{
 		this->update_element_idx();
 	}));
-	osp->universe->sign_up_for_event("core:system_update_indices", hndl);
+	hgr->universe->sign_up_for_event("core:system_update_indices", hndl);
 }
 
 void LandedTrajectory::propagate(double dt, const StateVector &mstates, const LightStateVector &lstates,

@@ -340,7 +340,7 @@ void PlanetarySystem::update_render_body_rocky(SystemElement* body, glm::dvec3 b
 				glm::inverse(rel_matrix) * glm::dvec4(glm::normalize(rel_camera_pos) * (altitude * 1.1 + body->config.radius * 1.01), 1.0),
 				glm::vec3(1.0, 1.0, 1.0));
 
-			//osp->game_state->universe.bt_world->debugDrawWorld();
+			//hgr->game_state->universe.bt_world->debugDrawWorld();
 		}
 	}
 }

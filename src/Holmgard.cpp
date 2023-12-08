@@ -1,4 +1,4 @@
-#include "OSP.h"
+#include "Holmgard.h"
 #include "rang.hpp"
 #include <renderer/util/TextDrawer.h>
 #include <util/Profiler.h>
@@ -11,7 +11,7 @@
 
 InputUtil* input;
 
-OSP* osp;
+Holmgard* hgr;
 
 #ifdef DETAILED_TIMING
 extern Timer timing;
@@ -41,7 +41,7 @@ static void help_menu()
 {
 
 	std::cout << std::endl;
-	std::cout << "OSPGL " << OSP::OSP_VERSION << " help:" << std::endl;
+	std::cout << "OSPGL " << Holmgard::OSP_VERSION << " help:" << std::endl;
 	menu_item("settings", "path/to/settings.toml", "settings.toml", "What file to load as the configuration file, relative to the set udata folder");	
 	menu_item("res_path", "path/to/res/folder/", "./res/", "Path to the resource folder you want to use. End it with a \"/\"");
 	menu_item("udata_path", "path/to/udata/", "./udata/", "Path to the user data folder, ended with a \"/\"");
@@ -68,7 +68,7 @@ bool is_number(const std::string& s)
 	return !s.empty() && it == s.end();
 }
 
-void OSP::init(int argc, char** argv)
+void Holmgard::init(int argc, char** argv)
 {
 	set_this_thread_name("main");
 	argh::parser args(argc, argv);
@@ -122,7 +122,7 @@ void OSP::init(int argc, char** argv)
 		// Initialize subsystems
 		create_global_logger();
 
-		logger->info(R"(Starting OSP with settings = "{}", resource path = "{}", user data path = "{}")", settings_path, res_path, udata_path);
+		logger->info(R"(Starting Holmgard with settings = "{}", resource path = "{}", user data path = "{}")", settings_path, res_path, udata_path);
 		
 		// Load settings
 		std::string settings_file = AssetManager::load_string_raw(udata_path + settings_path);
@@ -197,9 +197,9 @@ void OSP::init(int argc, char** argv)
 	}
 }
 
-void OSP::finish()
+void Holmgard::finish()
 {
-	logger->info("Closing OSP");
+	logger->info("Closing Holmgard");
 	delete game_state;
 	delete input;
 	destroy_global_lua_core();
@@ -212,12 +212,12 @@ void OSP::finish()
 	destroy_global_logger();
 }
 
-bool OSP::should_loop()
+bool Holmgard::should_loop()
 {
 	return !glfwWindowShouldClose(renderer->window);
 }
 
-void OSP::start_frame()
+void Holmgard::start_frame()
 {
 	if(renderer != nullptr)
 	{
@@ -233,13 +233,13 @@ void OSP::start_frame()
 	}
 }
 
-void OSP::update()
+void Holmgard::update()
 {
 	PROFILE_FUNC();
 	game_state->update();
 }
 
-void OSP::render()
+void Holmgard::render()
 {
 	PROFILE_FUNC();
 
@@ -252,7 +252,7 @@ void OSP::render()
 	}
 }
 
-void OSP::finish_frame()
+void Holmgard::finish_frame()
 {
 	double max_dt = game_state->universe.MAX_PHYSICS_STEPS * game_state->universe.PHYSICS_STEPSIZE;
 	dt = dtt.restart();
@@ -265,23 +265,23 @@ void OSP::finish_frame()
 	}
 }
 
-OSP::OSP()
+Holmgard::Holmgard()
 {
 	runtime_uid = 0;
 }
 
-uint64_t OSP::get_runtime_uid()
+uint64_t Holmgard::get_runtime_uid()
 {
 	runtime_uid++;
 	return runtime_uid;
 }
 
-void OSP::launch_menu(const std::string& skip_to_save)
+void Holmgard::launch_menu(const std::string& skip_to_save)
 {
 	launch_gamestate(GameState::create_main_menu(skip_to_save));
 }
 
-void OSP::end_gamestate()
+void Holmgard::end_gamestate()
 {
 	// This should clean up, including memory leaks from lua, etc...
 	delete game_state;
@@ -290,7 +290,7 @@ void OSP::end_gamestate()
 	launch_menu("");
 }
 
-void OSP::launch_gamestate(GameState* g)
+void Holmgard::launch_gamestate(GameState* g)
 {
 	game_state->init();
 }

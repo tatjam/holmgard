@@ -3,7 +3,7 @@
 #include <gui/GUIScreen.h>
 #include <string>
 
-class OSP;
+class Holmgard;
 
 // Scenes handle user interaction with the universe, either via seeing
 // and controlling vehicles or other task (creating vehicles, discovering technology...)

@@ -17,9 +17,9 @@ class GameDatabase;
 class AudioEngine;
 class Universe;
 
-// Initializes the different subsystems OSP has
-// It's a global class, only one OSP may exist at once (filesystem related)
-class OSP
+// Initializes the different subsystems Holmgard has
+// It's a global class, only one Holmgard may exist at once (filesystem related)
+class Holmgard
 {
 public:
 
@@ -68,7 +68,7 @@ public:
 	void finish_frame();
 	uint64_t get_runtime_uid();
 
-	OSP();
+	Holmgard();
 };
 
-extern OSP* osp;
+extern Holmgard* hgr;

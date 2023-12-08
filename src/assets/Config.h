@@ -26,9 +26,9 @@ Config* load_config(ASSET_INFO, const cpptoml::table& cfg);
 template<typename T>
 inline void Config::read_to(T& target, const std::string& sub_path) const
 {
-	std::string old_pkg = osp->assets->get_current_package();
+	std::string old_pkg = hgr->assets->get_current_package();
 
-	osp->assets->set_current_package(get_asset_pkg());
+	hgr->assets->set_current_package(get_asset_pkg());
 	SerializeUtil::read_to(*root, target, sub_path);
-	osp->assets->set_current_package(old_pkg);
+	hgr->assets->set_current_package(old_pkg);
 }

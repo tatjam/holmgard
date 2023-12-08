@@ -14,7 +14,7 @@ void LuaSceneLib::load_to(sol::table &table)
 		{
 			all_args.push_back(v);
 		}
-		auto* new_scene = new LuaScene(osp->game_state, lua_path, this_pkg, all_args);
-		osp->game_state->load_scene(new_scene);
+		auto* new_scene = new LuaScene(hgr->game_state, lua_path, this_pkg, all_args);
+		hgr->game_state->load_scene(new_scene);
 	});
 }

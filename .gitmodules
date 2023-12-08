@@ -7,9 +7,9 @@
 [submodule "dep/LuaJIT-cmake"]
 	path = dep/LuaJIT-cmake
 	url = https://github.com/Titaniumtown/LuaJIT-cmake.git
-[submodule "dep/osp"]
-	path = dep/osp
-	url = https://github.com/TheOpenSpaceProgram/osp.git
+[submodule "dep/hgr"]
+	path = dep/hgr
+	url = https://github.com/TheOpenSpaceProgram/hgr.git
 [submodule "dep/glfw"]
 	path = dep/glfw
 	url = https://github.com/glfw/glfw.git

@@ -340,7 +340,7 @@ public:
 				}
 				else if (as_tex)
 				{
-					auto[tpkg, tname] = osp->assets->get_package_and_name(as_tex->get(), osp->assets->get_current_package());
+					auto[tpkg, tname] = hgr->assets->get_package_and_name(as_tex->get(), hgr->assets->get_current_package());
 					to.uniforms[name] = Uniform(tpkg, tname);
 				}
 				else
@@ -361,8 +361,8 @@ public:
 
 		SAFE_TOML_GET(str, "shader", std::string);
 
-		to.shader = osp->assets->get_from_path<Shader>(str);
-		to.shadow_shader = osp->assets->get_from_path<Shader>("core:shaders/shadow.vs"); //< TODO: Maybe allow the user to choose a shader?
+		to.shader = hgr->assets->get_from_path<Shader>(str);
+		to.shadow_shader = hgr->assets->get_from_path<Shader>("core:shaders/shadow.vs"); //< TODO: Maybe allow the user to choose a shader?
 		auto cfg_toml = from.get_table_qualified("config");
 		if (cfg_toml)
 		{

@@ -134,7 +134,7 @@ BitmapFont* load_bitmap_font(ASSET_INFO, const cpptoml::table& cfg)
 {
 	std::vector<uint8_t> font = AssetManager::load_binary_raw(path);
 
-	Image* font_image = osp->assets->get<Image>(pkg, name.substr(0, name.find_last_of('.')) + ".png");
+	Image* font_image = hgr->assets->get<Image>(pkg, name.substr(0, name.find_last_of('.')) + ".png");
 
 	return new BitmapFont(font, font_image, ASSET_INFO_P);
 }

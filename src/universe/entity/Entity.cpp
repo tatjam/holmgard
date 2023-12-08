@@ -79,18 +79,18 @@ UniverseObject::UniverseObject(std::string script_path, std::string in_pkg, std:
 							   std::vector<sol::object> args, bool is_create)
 {
 	this->init_toml = std::move(init_toml);
-	this->lua_state = &osp->game_state->universe.lua_state;
+	this->lua_state = &hgr->game_state->universe.lua_state;
 
-	auto[pkg, name] = osp->assets->get_package_and_name(script_path, in_pkg);
+	auto[pkg, name] = hgr->assets->get_package_and_name(script_path, in_pkg);
 	type_str = pkg + ":" + name;
 
 	env = sol::environment(*lua_state, sol::create, lua_state->globals());
 	// We need to load LuaCore to it
 	lua_core->load((sol::table&)env, pkg);
 	env["entity"] = this;
-	env["osp"] = osp;
+	env["hgr"] = hgr;
 
-	std::string full_path = osp->assets->res_path + pkg + "/" + name;
+	std::string full_path = hgr->assets->res_path + pkg + "/" + name;
 	auto result = (*lua_state).safe_script_file(full_path, env);
 	if(!result.valid())
 	{

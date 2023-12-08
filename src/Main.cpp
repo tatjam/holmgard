@@ -2,7 +2,7 @@
 
 #include "assets/Model.h"
 #include "physics/ground/GroundShape.h"
-#include "OSP.h"
+#include "Holmgard.h"
 #include "game/GameState.h"
 #include <util/Profiler.h>
 
@@ -14,24 +14,24 @@
 
 int main(int argc, char** argv)
 {
-	osp = new OSP();
-	osp->init(argc, argv);
+	hgr = new Holmgard();
+	hgr->init(argc, argv);
 
 	double fps_t = 0.0;
 	double dt_avg = 0.0;
 
 	PROFILE_FUNC();
 
-	while (osp->should_loop())
+	while (hgr->should_loop())
 	{
 		PROFILE_BLOCK("frame");
 
-		osp->start_frame();
-		osp->update();
-		osp->render();
-		osp->finish_frame();
+		hgr->start_frame();
+		hgr->update();
+		hgr->render();
+		hgr->finish_frame();
 
 	}
 
-	osp->finish();
+	hgr->finish();
 }

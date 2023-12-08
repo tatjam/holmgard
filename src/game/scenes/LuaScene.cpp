@@ -12,9 +12,9 @@ LuaScene::LuaScene(GameState* in_state, const std::string& scene_script, const s
 	this->to_pass_args = args;
 	this->in_pkg = in_pkg;
 	this->lua_state = &in_state->universe.lua_state;
-	osp->renderer->cam = &cam;
+	hgr->renderer->cam = &cam;
 
-	auto[pkg, name] = osp->assets->get_package_and_name(scene_script, in_pkg);
+	auto[pkg, name] = hgr->assets->get_package_and_name(scene_script, in_pkg);
 	this->name = pkg + ":" + name;
 
 	logger->info("Loading lua scene: {}:{}", pkg, name);
@@ -22,10 +22,10 @@ LuaScene::LuaScene(GameState* in_state, const std::string& scene_script, const s
 	env = sol::environment(*lua_state, sol::create, lua_state->globals());
 	// We need to load LuaCore to it
 	lua_core->load((sol::table&)env, pkg);
-	env["osp"] = osp;
+	env["hgr"] = hgr;
 	env["gui_input"] = &gui_input;
 
-	std::string full_path = osp->assets->res_path + pkg + "/" + name;
+	std::string full_path = hgr->assets->res_path + pkg + "/" + name;
 	auto result = (*lua_state).safe_script_file(full_path, env);
 	if(!result.valid())
 	{
@@ -44,14 +44,14 @@ void LuaScene::load()
 
 void LuaScene::pre_update()
 {
-	LuaUtil::call_function_if_present(env["pre_update"], osp->dt);
+	LuaUtil::call_function_if_present(env["pre_update"], hgr->dt);
 }
 
 
 void LuaScene::update()
 {
 	gui_input.update();
-	LuaUtil::call_function_if_present(env["update"], osp->dt);
+	LuaUtil::call_function_if_present(env["update"], hgr->dt);
 }
 
 void LuaScene::physics_update(double bdt)

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <OSP.h>
+#include <Holmgard.h>
 #include <util/SerializeUtil.h>
 #include <util/serializers/glm.h>
 #include <assets/Image.h>
@@ -48,6 +48,6 @@ public:
 
 		SAFE_TOML_GET(to.max_height, "max_height", double);
 
-		to.script_path = osp->assets->resolve_path(to.script_path_raw);
+		to.script_path = hgr->assets->resolve_path(to.script_path_raw);
 	}
 };

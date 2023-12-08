@@ -13,7 +13,7 @@ void DebugGBuffer::do_pass(CameraUniforms &cu, GBuffer *gbuf)
 {
 	if(shader == nullptr)
 	{
-		shader = osp->assets->get<Shader>("core", "shaders/light/debug_gbuffer.vs");
+		shader = hgr->assets->get<Shader>("core", "shaders/light/debug_gbuffer.vs");
 	}
 
 	prepare_shader(shader, gbuf, cu.irradiance, cu.specular, cu.brdf);

@@ -137,7 +137,7 @@ LuaAssetHandle<T>::LuaAssetHandle(const AssetHandle<T>& from)
 	name = from.name;
 	data = from.data;
 
-	osp->assets->get<T>(pkg, name, true);
+	hgr->assets->get<T>(pkg, name, true);
 
 #ifdef LUA_ASSET_DEBUG_ENABLED
 	logger->debug("Lua asset handle created (path={}:{}, pointer={}) by copy from asset handle", pkg, name, (void*)data);
@@ -177,7 +177,7 @@ LuaAssetHandle<T>::LuaAssetHandle(const LuaAssetHandle<T>& p2)
 	data = p2.data;
 	ut = p2.ut;
 
-	osp->assets->get<T>(pkg, name, true);
+	hgr->assets->get<T>(pkg, name, true);
 
 #ifdef LUA_ASSET_DEBUG_ENABLED
 	logger->debug("Lua asset handle created (path={}:{}, pointer={}) by copy", pkg, name, (void*)data);
@@ -205,6 +205,6 @@ LuaAssetHandle<T>::~LuaAssetHandle()
 #ifdef LUA_ASSET_DEBUG_ENABLED
 		logger->debug("Lua asset handle freed (path={}:{}, pointer={})", pkg, name, (void*)data);
 #endif
-		osp->assets->free<T>(pkg, name);
+		hgr->assets->free<T>(pkg, name);
 	}
 }

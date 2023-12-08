@@ -46,7 +46,7 @@ void LuaRenderer::load_to(sol::table& table)
 			 {
 				// TODO: Maybe give the chance of changing rendered system?
 				// Probably not a good idea
-				rnd->render(&osp->game_state->universe.system);
+				rnd->render(&hgr->game_state->universe.system);
 			 },
 		  "clear", &Renderer::clear,
 		  "quality", &Renderer::quality,

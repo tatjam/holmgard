@@ -27,7 +27,7 @@ void LuaGUI::load_to(sol::table &table)
 		"get_background_color", &GUISkin::get_background_color,
 		"draw_link", [](GUISkin* self, glm::dvec2 start_pos, glm::dvec2 win_pos, glm::dvec2 win_size,
 				glm::dvec2 mpos, bool cutable){
-			self->draw_link(osp->renderer->vg, start_pos, win_pos, win_size, mpos, cutable);},
+			self->draw_link(hgr->renderer->vg, start_pos, win_pos, win_size, mpos, cutable);},
 		"can_cut_link", [](GUISkin* self, glm::dvec2 start_pos, glm::dvec2 win_pos, glm::dvec2 win_size,
 				glm::dvec2 mpos){
 				return self->can_cut_link(start_pos, win_pos, win_size, mpos);},
@@ -214,7 +214,7 @@ void LuaGUI::load_to(sol::table &table)
 		   EVENT_EMITTER_SIGN_UP(GUIImageButton),
 		   "set_image", [](GUIImageButton& self, LuaAssetHandle<Image> handle)
 		   {
-				self.set_image(osp->renderer->vg, handle.get_asset_handle());
+				self.set_image(hgr->renderer->vg, handle.get_asset_handle());
 		   },
 		   "disabled", &GUIImageButton::disabled,
 		   "toggled", &GUIImageButton::toggled,

@@ -3,7 +3,7 @@
 #include "CameraUniforms.h"
 #include "util/LuaUtil.h"
 #include <optional>
-#include "OSP.h"
+#include "Holmgard.h"
 #include "game/GameState.h"
 
 // This "camera" is used in all lua scenes and simply passes the
@@ -19,9 +19,9 @@ public:
 	virtual CameraUniforms get_camera_uniforms(int w, int h)
 	{
 		// This is the one that can be overriden
-		if(osp->game_state->debug.override_camera)
+		if(hgr->game_state->debug.override_camera)
 		{
-			return osp->game_state->debug.cam.get_camera_uniforms(w, h);
+			return hgr->game_state->debug.cam.get_camera_uniforms(w, h);
 		}
 		else
 		{

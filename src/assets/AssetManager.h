@@ -12,7 +12,7 @@
 #include <util/SerializeUtil.h>
 #include <lua/LuaCore.h>
 
-#include <OSP.h>
+#include <Holmgard.h>
 
 #include <PackageMetadata.h>
 #include "Asset.h"
@@ -366,7 +366,7 @@ struct AssetPointer
 
 	AssetPointer(const std::string& path, const std::string& def = "")
 	{
-		std::tie(pkg, name) = osp->assets->get_package_and_name(path, def);
+		std::tie(pkg, name) = hgr->assets->get_package_and_name(path, def);
 	}
 
 	AssetPointer()
@@ -404,7 +404,7 @@ public:
 	{
 		if (data != nullptr)
 		{
-			osp->assets->free<T>(pkg, name);
+			hgr->assets->free<T>(pkg, name);
 			data = nullptr;
 		}
 	}
@@ -414,7 +414,7 @@ public:
 		this->pkg = pkg;
 		this->name = name;
 
-		data = osp->assets->get<T>(pkg, name);
+		data = hgr->assets->get<T>(pkg, name);
 	}
 
 	// This avoids the other constructor from being called when passing pointers
@@ -425,11 +425,11 @@ public:
 
 	AssetHandle(const std::string& path)
 	{
-		auto[pkg, name] = osp->assets->get_package_and_name(path, osp->assets->get_current_package());
+		auto[pkg, name] = hgr->assets->get_package_and_name(path, hgr->assets->get_current_package());
 		this->pkg = pkg;
 		this->name = name;
 
-		data = osp->assets->get<T>(pkg, name);
+		data = hgr->assets->get<T>(pkg, name);
 	}
 
 	AssetHandle(const AssetPointer& ptr) : AssetHandle(ptr.pkg, ptr.name)

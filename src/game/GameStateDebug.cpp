@@ -47,7 +47,7 @@ void GameStateDebug::update()
 			ImGui::End();
 		}
 
-		for(UniverseObject* e : osp->universe->entities)
+		for(UniverseObject* e : hgr->universe->entities)
 		{
 			if(vector_contains(shown_entity, e))
 			{
@@ -89,7 +89,7 @@ void GameStateDebug::do_entities()
 {
 	do_docking_button(&entities_undocked);
 
-	for (UniverseObject *e : osp->universe->entities)
+	for (UniverseObject *e : hgr->universe->entities)
 	{
 		ImGui::PushID(e);
 		ImGui::Text("%lld (%s)", e->get_uid(), e->get_type().c_str());
@@ -135,7 +135,7 @@ void GameStateDebug::do_launcher()
 	ImGui::Begin("Debug menu");
 	ImGui::Text("Toggle with Ctrl+Alt+F12 / º / `");
 	// Basic perfomance info
-	ImGui::Text("FPS: %i | Game FPS: %i", (int)(1.0 / osp->game_dt), (int)(1.0 / osp->dt));
+	ImGui::Text("FPS: %i | Game FPS: %i", (int)(1.0 / hgr->game_dt), (int)(1.0 / hgr->dt));
 	if(override_camera)
 	{
 		if(ImGui::Button("Free camera"))
@@ -199,7 +199,7 @@ void GameStateDebug::update_cam(double dt)
 {
 	cam.update(dt);
 	bool found = false;
-	for (UniverseObject *e : osp->universe->entities)
+	for (UniverseObject *e : hgr->universe->entities)
 	{
 		if(e == centered_camera)
 		{
@@ -222,13 +222,13 @@ void GameStateDebug::update_cam(double dt)
 void GameStateDebug::do_renderer()
 {
 
-	if(ImGui::BeginCombo("View G-Buffer: ", DebugGBuffer::get_mode_str(osp->renderer->debug_gbuffer.mode)))
+	if(ImGui::BeginCombo("View G-Buffer: ", DebugGBuffer::get_mode_str(hgr->renderer->debug_gbuffer.mode)))
 	{
 		for(int v = DebugGBuffer::NONE; v != DebugGBuffer::END_MARKER; v++)
 		{
 			if(ImGui::Selectable(DebugGBuffer::get_mode_str((DebugGBuffer::View)v)))
 			{
-				osp->renderer->debug_gbuffer.mode = (DebugGBuffer::View)v;
+				hgr->renderer->debug_gbuffer.mode = (DebugGBuffer::View)v;
 			}
 		}
 		ImGui::EndCombo();

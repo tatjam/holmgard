@@ -7,7 +7,7 @@ PartIconLight::PartIconLight()
 	color = glm::vec3(1.0, 1.0, 1.0);
 	sun_dir = -glm::normalize(glm::vec3(1.0, 1.0, 0.0));
 
-	shader = osp->assets->get<Shader>("core", "shaders/light/part_icon.vs");
+	shader = hgr->assets->get<Shader>("core", "shaders/light/part_icon.vs");
 }
 
 

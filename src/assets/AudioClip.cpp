@@ -1,6 +1,6 @@
 #include "AudioClip.h"
 #include <miniaudio/miniaudio.h>
-#include <OSP.h>
+#include <Holmgard.h>
 #include <audio/AudioEngine.h>
 
 AudioClip* load_audio_clip(ASSET_INFO, const cpptoml::table &cfg)
@@ -33,7 +33,7 @@ AudioClip* load_audio_clip(ASSET_INFO, const cpptoml::table &cfg)
 	converter_cfg.channelsIn = decoder.outputChannels;
 	converter_cfg.channelsOut = output_channels;
 	converter_cfg.sampleRateIn = decoder.outputSampleRate;
-	converter_cfg.sampleRateOut = osp->audio_engine->get_sample_rate();
+	converter_cfg.sampleRateOut = hgr->audio_engine->get_sample_rate();
 
 	ma_data_converter converter;
 	result = ma_data_converter_init(&converter_cfg, &converter);

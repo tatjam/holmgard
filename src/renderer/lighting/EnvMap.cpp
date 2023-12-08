@@ -4,7 +4,7 @@
 
 EnvMap::EnvMap()
 {
-	shader = osp->assets->get<Shader>("core", "shaders/light/env_map.vs");
+	shader = hgr->assets->get<Shader>("core", "shaders/light/env_map.vs");
 
 }
 

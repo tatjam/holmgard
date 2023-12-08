@@ -229,7 +229,7 @@ DebugDrawer::DebugDrawer()
 	lines_vbo = 0;
 	lines_vao = 0;
 
-	shader = osp->assets->get<Shader>("core", "shaders/debug.vs");
+	shader = hgr->assets->get<Shader>("core", "shaders/debug.vs");
 	point_size = 4.0f;
 	line_size = 1.0f;
 

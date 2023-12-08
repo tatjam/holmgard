@@ -1,6 +1,6 @@
 #include "GameState.h"
 #include <game/scenes/LuaScene.h>
-#include <OSP.h>
+#include <Holmgard.h>
 
 GameState::GameState() : universe(), debug(this)
 {
@@ -26,12 +26,12 @@ void GameState::update()
 	}
 
 	scene->pre_update();
-	//universe.update(osp->dt);
+	//universe.update(hgr->dt);
 
 	if(debug.override_camera)
 	{
-		debug.update_cam(osp->dt);
-		debug.cam.update(osp->dt);
+		debug.update_cam(hgr->dt);
+		debug.cam.update(hgr->dt);
 		if(scene)
 		{
 			scene->gui_input.ext_mouse_blocked = debug.cam.mouse_blocked;
@@ -76,16 +76,16 @@ GameState* GameState::create_with_system(const std::string &planetary_system_pac
 
 	out->used_packages.emplace_back("core");
 	out->used_packages.push_back(planetary_system_package);
-	auto [pkg, name] = osp->assets->get_package_and_name(planetary_system_package, "core");
+	auto [pkg, name] = hgr->assets->get_package_and_name(planetary_system_package, "core");
 	out->system_used = pkg + ":" + name;
-	out->system_version = osp->assets->get_package_metadata(pkg).version;
+	out->system_version = hgr->assets->get_package_metadata(pkg).version;
 
-	auto root = osp->assets->load_toml(planetary_system_package);
+	auto root = hgr->assets->load_toml(planetary_system_package);
 	// We may load the system, as it's just a gamestate file without the metadata
 	out->load_inner(*root);
 
 	// Now load the default main scene (which is determined in core:default_scene.toml)
-	auto scene_toml = osp->assets->load_toml("core:scenes/new_save_scene.toml");
+	auto scene_toml = hgr->assets->load_toml("core:scenes/new_save_scene.toml");
 	out->load_scene_from_save(*scene_toml);
 
 	return out;
@@ -95,9 +95,9 @@ GameState *GameState::load(const std::string &path)
 {
 	GameState* out = create_empty_gamestate();
 	out->path = path;
-	logger->check(osp->assets->is_path_safe(path), "Unsafe path");
+	logger->check(hgr->assets->is_path_safe(path), "Unsafe path");
 
-	std::string full_path = osp->assets->udata_path + "saves/" + path + "save.toml";
+	std::string full_path = hgr->assets->udata_path + "saves/" + path + "save.toml";
 
 	auto root = SerializeUtil::load_file(full_path);
 	// Read required packages
@@ -110,9 +110,9 @@ GameState *GameState::load(const std::string &path)
 	out->system_used = *root->get_as<std::string>("system_package");
 	out->system_version = *root->get_as<std::string>("system_version");
 
-	auto [pkg, name] = osp->assets->get_package_and_name(out->system_used, "core");
+	auto [pkg, name] = hgr->assets->get_package_and_name(out->system_used, "core");
 	// Check system version
-	const std::string& cur_version = osp->assets->get_package_metadata(pkg).version;
+	const std::string& cur_version = hgr->assets->get_package_metadata(pkg).version;
 	out->is_system_outdated = false;
 	if(cur_version != out->system_version)
 	{
@@ -122,7 +122,7 @@ GameState *GameState::load(const std::string &path)
 	}
 
 	// Load packages now so they register all scripts...
-	osp->assets->load_packages(out->used_packages, lua_core, osp->game_database);
+	hgr->assets->load_packages(out->used_packages, lua_core, hgr->game_database);
 
 	out->load_inner(*root);
 
@@ -158,8 +158,8 @@ GameState *GameState::create_empty_gamestate()
 	GameState* out = new GameState();
 	// TODO: This could be moved somewhere else, but it's important
 	// to run it quick, as otherwise lua environments get the wrong universe!
-	osp->universe = &out->universe;
-	osp->game_state = out;
+	hgr->universe = &out->universe;
+	hgr->game_state = out;
 
 	out->to_delete = nullptr;
 	out->scene = nullptr;
