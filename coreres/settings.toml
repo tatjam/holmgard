@@ -1,0 +1,44 @@
+[locale]
+	language = "en"
+
+[renderer]
+	width = 1366
+	height = 768
+	scale = 1.0
+	type = "windowed"	# "windowed", "fullscreen" or "windowed fullscreen"
+	swap_interval = 1
+
+[audio_engine]
+	channel_0_int_gain = 1.0
+	channel_0_ext_gain = 1.0
+
+	channel_1_int_gain = 0.3
+	channel_1_ext_gain = 1.0
+
+	channel_2_int_gain = 0.6
+	channel_2_ext_gain = 1.0
+
+	channel_3_int_gain = 1.0
+	channel_3_ext_gain = 0.0
+
+
+[renderer.quality]
+	sun_shadow_size = 1024
+	sun_terrain_shadow_size = 1024
+	secondary_shadow_size = 512
+	env_map_size = 256
+
+[renderer.quality.pbr]
+	quality = "full"
+	simple_sampling = true
+	faces_per_sample = 1
+	frames_per_sample = 10
+
+[renderer.quality.atmosphere]
+	iterations = 3
+	sub_iterations = 2
+	low_end = false
+
+[renderer.quality.planet]
+	use_detail_map = true
+	use_detail_normal = true
