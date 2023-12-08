@@ -139,12 +139,16 @@ void Logger::log(int level, const char* format, fmt::format_args args)
 	// TODO: Implement some mechanism to clean the log
 	saved_log.emplace_back(str, level);
 
-	if(level >= 3)
+	int crash_level = 3;
+#ifdef HOLMGARD_CRASH_LEVEL
+	crash_level = HOLMGARD_CRASH_LEVEL;
+#endif
+	if(level >= crash_level)
 	{
 		stacktrace();
 	}
 
-	if (level == 4)
+	if (level >= HOLMGARD_CRASH_LEVEL)
 	{
 		std::cout << "Raising exception" << std::endl;
 		flushCounter = 0;
@@ -152,7 +156,7 @@ void Logger::log(int level, const char* format, fmt::format_args args)
 
 	onLog(level >= 2);
 
-	if (level == 4)
+	if (level >= HOLMGARD_CRASH_LEVEL)
 	{
 		throw("Fatal error");
 	}

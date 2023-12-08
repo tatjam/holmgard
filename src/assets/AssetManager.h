@@ -62,6 +62,7 @@ private:
 		std::unordered_map<std::type_index, AssetTypeAndAssets> assets;
 		sol::state* pkg_lua;
 		bool was_init;
+		std::string path_prefix;
 	};
 	
 	std::unordered_map<std::string, Package> packages;
@@ -275,7 +276,7 @@ inline bool AssetManager::load(const std::string& package, const std::string& na
 
 	LoadAssetPtr<T> fptr = (LoadAssetPtr<T>)(it->second.first.loadPtr);
 
-	std::string full_path = res_path + package + "/" + name;
+	std::string full_path = pkg->second.path_prefix + name;
 	std::string full_folder = full_path.substr(0, full_path.find_last_of('/') + 1);
 
 	// Load config

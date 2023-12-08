@@ -7,14 +7,14 @@ set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set (OSPGL_STACKTRACES OFF)
 
 ##################################################################################
-# OSPGL - The game engine
+# holmgard - The game engine
 ##################################################################################
-project(OSPGL)
+project(holmgard)
 
 
-# Define source files for OSP and non-cmake dependencies
+# Define source files for holmgard and non-cmake dependencies
 
-file(GLOB_RECURSE OSP_SOURCES "src/*.cpp")
+file(GLOB_RECURSE CORE_SOURCES "src/*.cpp")
 file(GLOB_RECURSE IMGUI_SOURCES "dep/imgui/*.cpp")
 set(GLAD_SOURCES "dep/glad/glad.c")
 set(STB_SOURCES "dep/stb/stb_impl.cpp")
@@ -24,18 +24,13 @@ set(TINY_GLTF_SOURCES "dep/tiny_gltf/tiny_gltf.cpp")
 set(BACKWARD_SOURCES "dep/tiny_gltf/tiny_gltf.cpp")
 set(MINIAUDIO_SOURCES "dep/miniaudio/miniaudio.c")
 
-# Create the OSPGL executable
-
-add_executable(OSPGL ${OSP_SOURCES} ${IMGUI_SOURCES} ${GLAD_SOURCES} 
+add_executable(holmgard ${CORE_SOURCES} ${IMGUI_SOURCES} ${GLAD_SOURCES}
 	${FASTNOISEC_SOURCES} ${STB_SOURCES} ${NANOVG_SOURCES} ${TINY_GLTF_SOURCES}
 	${BACKWARD_SOURCES} ${MINIAUDIO_SOURCES})
 
-# Name it ospgl (lowercase)
-set_target_properties(OSPGL PROPERTIES OUTPUT_NAME "ospgl")
-
 # Set compiler options for OSPGL
-if(OSPGL_STACKTRACES)
-	add_definitions(-DOSPGL_STACKTRACES=1)
+if(HOLMGARD_STACKTRACES)
+	add_definitions(-DHOLMGARD_STACKTRACES=1)
 endif()
 
 add_definitions(-DLUAJIT_ENABLE_LUA52COMPAT)
@@ -43,16 +38,16 @@ add_definitions(-DLUAJIT_ENABLE_LUA52COMPAT)
 if(MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
-	target_compile_options(OSPGL PUBLIC /bigobj)
+	target_compile_options(holmgard PUBLIC /bigobj)
 else()
 	if(CMAKE_BUILD_TYPE MATCHES "Release")
 		message(WARNING "Building in release, debugging may misbehave!")
-		target_compile_options(OSPGL PUBLIC -g -O2)
+		target_compile_options(holmgard PUBLIC -g -O2)
 	else()
-		target_compile_options(OSPGL PUBLIC -g -O0)
+		target_compile_options(holmgard PUBLIC -g -O0)
 	endif()
 	set(EXTRA_LINK "stdc++fs")
-	if(OSPGL_STACKTRACES)
+	if(HOLMGARD_STACKTRACES)
 		add_definitions(-DBACKWARD_HAS_DW=1)
 		set(STACKTRACE_LINK "dw")
 	endif()
@@ -61,15 +56,15 @@ else()
 endif()
 
 include_directories(dep)
-include_directories(OSPGL PUBLIC dep/bullet3/src)
-include_directories(OSPGL PUBLIC src)
-include_directories(OSPGL PUBLIC pkg)
+include_directories(holmgard PUBLIC dep/bullet3/src)
+include_directories(holmgard PUBLIC src)
+include_directories(holmgard PUBLIC pkg)
 
 # Include CMake dependencies
 
 # GLFW
 add_subdirectory(dep/glfw)
-target_link_libraries(OSPGL glfw)
+target_link_libraries(holmgard glfw)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -77,12 +72,12 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 # OpenGL
 
 find_package(OpenGL REQUIRED)
-include_directories(OSPGL PUBLIC ${OPENGL_INCLUDE_DIR})
+include_directories(holmgard PUBLIC ${OPENGL_INCLUDE_DIR})
 
 # Threads
 
 find_package(Threads REQUIRED)
-target_link_libraries(OSPGL ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(holmgard ${CMAKE_THREAD_LIBS_INIT})
 
 # LuaJIT 
 
@@ -103,14 +98,21 @@ add_subdirectory(dep/fmt)
 # FreeType
 find_package(Freetype)
 if(Freetype_FOUND)
-	target_link_Libraries(OSPGL ${FREETYPE_LIBRARIES})
-	include_directories(OSPGL ${FREETYPE_INCLUDE_DIRS})
+	target_link_Libraries(holmgard ${FREETYPE_LIBRARIES})
+	include_directories(holmgard ${FREETYPE_INCLUDE_DIRS})
 	add_compile_definitions(WITH_FREETYPE)
 else()
 	message(WARNING "Could not find FreeType, text quality will be worse")
 endif()
 
+# Plugin support
+
+# Core resources check
+if(NOT HOLMGARD_EXTERNAL_CORERES)
+	add_compile_definitions(HOLMGARD_INTERNAL_CORERES)
+endif()
+
 # Link libraries
 
-target_link_libraries(OSPGL fmt liblua-static BulletSoftBody BulletDynamics
+target_link_libraries(holmgard fmt liblua-static BulletSoftBody BulletDynamics
 		BulletCollision LinearMath ${CMAKE_DL_LIBS} ${EXTRA_LINK} ${STACKTRACE_LINK})

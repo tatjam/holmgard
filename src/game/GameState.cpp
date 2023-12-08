@@ -70,9 +70,9 @@ void GameState::load_scene(Scene* n_scene)
 	scene->load();
 }
 
-GameState* GameState::create_empty(const std::string &planetary_system_package)
+GameState* GameState::create_with_system(const std::string &planetary_system_package)
 {
-	GameState* out = new GameState();
+	GameState* out = create_empty_gamestate();
 
 	out->used_packages.emplace_back("core");
 	out->used_packages.push_back(planetary_system_package);
@@ -93,14 +93,7 @@ GameState* GameState::create_empty(const std::string &planetary_system_package)
 
 GameState *GameState::load(const std::string &path)
 {
-	GameState* out = new GameState();
-	// TODO: This could be moved somewhere else, but it's important
-	// to run it quick, as otherwise lua environments get the wrong universe!
-	osp->universe = &out->universe;
-	osp->game_state = out;
-
-	out->to_delete = nullptr;
-	out->scene = nullptr;
+	GameState* out = create_empty_gamestate();
 	out->path = path;
 	logger->check(osp->assets->is_path_safe(path), "Unsafe path");
 
@@ -144,13 +137,34 @@ GameState *GameState::create_main_menu(const std::string &skip_to_save)
 {
 	if(skip_to_save.empty())
 	{
-		// Main menu proper TODO
-		return load("debug-save/");
+#ifndef HOLMGARD_ENTRYPOINT
+		logger->fatal("No save load specified, nor was HOLMGARD_ENTRYPOINT defined");
+#else
+		const std::string& entry_point = HOLMGARD_ENTRYPOINT;
+		// Create an empty GameState
+		GameState* out = create_empty_gamestate();
+		out->scene = new LuaScene(out, entry_point, "core", {});
+		return out;
+#endif
 	}
 	else
 	{
 		return load(skip_to_save);
 	}
+}
+
+GameState *GameState::create_empty_gamestate()
+{
+	GameState* out = new GameState();
+	// TODO: This could be moved somewhere else, but it's important
+	// to run it quick, as otherwise lua environments get the wrong universe!
+	osp->universe = &out->universe;
+	osp->game_state = out;
+
+	out->to_delete = nullptr;
+	out->scene = nullptr;
+	out->path = "";
+	return out;
 }
 
 void GameState::init()
@@ -179,9 +193,6 @@ void GameState::load_inner(cpptoml::table &from)
 	// These updates populate the element arrays
 	universe.system.update(0.0, universe.bt_world, false);
 	universe.system.update(0.0, universe.bt_world, true);
-
-	universe.piece_uid = *from.get_as<int64_t>("piece_uid");
-	universe.part_uid = *from.get_as<int64_t>("part_uid");
 
 	// Load entities
 	int64_t last_uid = *from.get_as<int64_t>("uid");
@@ -239,4 +250,5 @@ GameState::~GameState()
 		delete scene;
 	}
 }
+
 

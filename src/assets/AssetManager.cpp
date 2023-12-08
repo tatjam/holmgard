@@ -126,8 +126,7 @@ std::string AssetManager::get_current_package()
 std::string AssetManager::resolve_path(const std::string& full_path, const std::string& def)
 {
 	auto[pkg, name] = get_package_and_name(full_path, def);
-
-	return this->res_path + pkg + "/" + name;
+	return packages[pkg].path_prefix + name;
 }
 
 void AssetManager::check_packages()
@@ -172,8 +171,23 @@ void AssetManager::preload()
 			packages[sstr] = Package();
 			packages[sstr].was_init = false;
 			packages[sstr].metadata = pkg_meta;
+			packages[sstr].path_prefix = as_str;
 		}
 	}
+
+	// Load the coreres if needed
+#ifdef HOLMGARD_INTERNAL_CORERES
+#ifndef HOLMGARD_CORERES_LOCATION
+#error HOLMGARD_EXTERNAL_CORERES not defined but no HOLMGARD_CORERES_LOCATION given
+#else
+
+	PackageMetadata core_meta(SerializeUtil::load_file(HOLMGARD_CORERES_LOCATION "package.toml"));
+	packages["core"] = Package();
+	packages["core"].was_init = false;
+	packages["core"].metadata = core_meta;
+	packages["core"].path_prefix = HOLMGARD_CORERES_LOCATION;
+#endif
+#endif
 	
 }
 

@@ -126,6 +126,12 @@ void OSP::init(int argc, char** argv)
 		
 		// Load settings
 		std::string settings_file = AssetManager::load_string_raw(udata_path + settings_path);
+		if(settings_file == "")
+		{
+			logger->warn("No settings.toml file found. Using internal settings file!");
+			settings_file = AssetManager::load_string_raw(HOLMGARD_CORERES_LOCATION "settings.toml");
+		}
+
 		std::shared_ptr<cpptoml::table> config = SerializeUtil::load_string(settings_file);
 		if(!config)
 		{

@@ -8,9 +8,7 @@
 class OSP;
 
 // Loads, runs, and stores a game state
-// It consists of a save.toml, and many extra files stored in its folder in saves/
-// for example, in flight vehicles are stored in in_flight/, saved vehicles in vehicles/,
-// screenshots in screenshots/ etc...
+// It consists of a save.toml, and many extra files stored in its folder in udata/saves/...
 class GameState
 {
 private:
@@ -20,6 +18,7 @@ private:
 	void load_inner(cpptoml::table& from);
 	void load_scene_from_save(cpptoml::table& scene);
 
+	static GameState* create_empty_gamestate();
 
 public:
 	GameStateDebug debug;
@@ -51,7 +50,7 @@ public:
 	void load_scene(Scene* new_scene);
 
 	// Creates a new save given a planetary system (path to the toml) (and the "core" package)
-	static GameState* create_empty(const std::string& planetary_system_package);
+	static GameState* create_with_system(const std::string& planetary_system_package);
 
 	// Reloads the system, replacing all buildings that were placed by the system
 	// and optionally resimulating the whole system up to current time
