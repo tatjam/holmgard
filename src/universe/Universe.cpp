@@ -22,7 +22,7 @@ void Universe::physics_update(double pdt)
 	// Do the physics update on the system
 	system.update(pdt, bt_world, true);
 
-	for (Entity* e : entities)
+	for (UniverseObject* e : entities)
 	{
 		e->physics_update(pdt);
 	}
@@ -36,7 +36,7 @@ void Universe::update(double dt)
 	{
 		system.update(dt, bt_world, false);
 
-		for (Entity* e : entities)
+		for (UniverseObject* e : entities)
 		{
 			e->update(dt);
 		}
@@ -54,7 +54,7 @@ int64_t Universe::get_uid()
 	return uid;
 }
 
-Entity* Universe::get_entity(int64_t uid)
+UniverseObject* Universe::get_entity(int64_t uid)
 {
 	auto it = entities_by_id.find(uid);
 	if(it == entities_by_id.end())
@@ -108,7 +108,7 @@ Universe::Universe() : system(this)
 
 Universe::~Universe()
 {
-	for(Entity* ent : entities)
+	for(UniverseObject* ent : entities)
 	{
 		delete ent;
 	}

@@ -834,7 +834,7 @@ void Renderer::remove_all_lights()
 	}
 }
 
-void Renderer::add_drawable_entity_lua(Entity* ent)
+void Renderer::add_drawable_entity_lua(UniverseObject* ent)
 {
 	auto ptr = std::shared_ptr<Drawable>((Drawable*)ent, &null_deleter<Drawable>);
 	add_drawable(ptr, "");

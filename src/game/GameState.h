@@ -13,7 +13,7 @@ class GameState
 {
 private:
 	// only valid during init() and load()
-	std::unordered_map<Entity*, int64_t> ent_to_id;
+	std::unordered_map<UniverseObject*, int64_t> ent_to_id;
 
 	void load_inner(cpptoml::table& from);
 	void load_scene_from_save(cpptoml::table& scene);

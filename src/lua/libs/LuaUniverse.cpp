@@ -1,7 +1,7 @@
 #include "LuaUniverse.h"
 
 #include <utility>
-#include <universe/entity/Entity.h>
+#include "universe/entity/UniverseObject.h"
 #include "LuaEvents.h"
 
 void LuaUniverse::load_to(sol::table& table)
@@ -27,8 +27,8 @@ void LuaUniverse::load_to(sol::table& table)
 			 {
 				 args_v.push_back(v);
 			 }
-			auto* ent = uv->create_entity<Entity>(script_path,
-				   env["__pkg"].get_or<std::string>("core"), nullptr, args_v, true);
+			auto* ent = uv->create_entity<UniverseObject>(script_path,
+														  env["__pkg"].get_or<std::string>("core"), nullptr, args_v, true);
 
 			return ent;
 		 }
@@ -55,24 +55,24 @@ void LuaUniverse::load_to(sol::table& table)
 			  "radius", sol::readonly(&ElementConfig::radius)
 	);
 
-	table.new_usertype<Entity>("entity", sol::no_constructor, sol::base_classes, sol::bases<Drawable>(),
-	        "enable_bullet", &Entity::enable_bullet,
-	        "disable_bullet", &Entity::disable_bullet,
-	        "set_bullet_enabled", &Entity::enable_bullet_wrapper,
-	        "get_position", &Entity::get_position,
-			"get_velocity", &Entity::get_velocity,
-	        "get_orientation", &Entity::get_orientation,
-			"get_angular_velocity", &Entity::get_angular_velocity,
-	        "get_physics_radius", &Entity::get_physics_radius,
-	        "is_physics_loader", &Entity::is_physics_loader,
-	        "timewarp_safe", &Entity::timewarp_safe,
-	        "uid", sol::property(&Entity::get_uid),
-	        "get_type", &Entity::get_type,
-			"init_toml", &Entity::init_toml,
-	        "save", &Entity::save,
-			"lua", &Entity::env,
-			//"__index", [](Entity* ent, const std::string& idx){ return ent->env[idx]; },
-	        "drawable_uid", sol::readonly(&Entity::drawable_uid));
+	table.new_usertype<UniverseObject>("entity", sol::no_constructor,
+									   "enable_bullet", &UniverseObject::enable_bullet,
+									   "disable_bullet", &UniverseObject::disable_bullet,
+									   "set_bullet_enabled", &UniverseObject::enable_bullet_wrapper,
+									   "get_position", &UniverseObject::get_position,
+									   "get_velocity", &UniverseObject::get_velocity,
+									   "get_orientation", &UniverseObject::get_orientation,
+									   "get_angular_velocity", &UniverseObject::get_angular_velocity,
+									   "get_physics_radius", &UniverseObject::get_physics_radius,
+									   "is_physics_loader", &UniverseObject::is_physics_loader,
+									   "timewarp_safe", &UniverseObject::timewarp_safe,
+									   "uid", sol::property(&UniverseObject::get_uid),
+									   "get_type", &UniverseObject::get_type,
+									   "init_toml", &UniverseObject::init_toml,
+									   "save", &UniverseObject::save,
+									   "lua", &UniverseObject::env
+			//"__index", [](UniverseObject* ent, const std::string& idx){ return ent->env[idx]; },
+			);
 
 	table.new_usertype<WorldState>("world_state", sol::no_constructor,
 	   "pos", &WorldState::pos,

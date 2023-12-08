@@ -26,7 +26,7 @@
 //#define ENABLE_GL_DEBUG
 
 class PlanetarySystem;
-class Entity;
+class UniverseObject;
 // Allows scaled rendering of the 3D scene to a framebuffer
 // and then UI drawing (in real resolution) over it
 // It first does a deferred rendering pass, and then a
@@ -176,7 +176,7 @@ public:
 	template<typename T>
 	void add_drawable_lua(std::shared_ptr<T> d){ add_drawable(d, ""); }
 
-	void add_drawable_entity_lua(Entity* ent);
+	void add_drawable_entity_lua(UniverseObject* ent);
 
 	template<typename T>
 	void add_light_lua(std::shared_ptr<T> d){ add_light(d); }

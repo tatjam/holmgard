@@ -1,6 +1,6 @@
 #pragma once
 #include "PlanetarySystem.h"
-#include "entity/Entity.h"
+#include "universe/entity/UniverseObject.h"
 #include <any>
 #include "Events.h"
 #pragma warning(push, 0)
@@ -13,7 +13,7 @@
 
 // The Universe is the central class of the game. It stores both the system
 // and everything else in the system (buildings and vehicles).
-// It implements a little Entity system to simplify a lot of the code
+// It implements a little UniverseObject system to simplify a lot of the code
 // and make modder's life easier. 
 // Note that events are implemented fully dynamic as they are needed
 // from the lua side. Otherwise we could simply use a events library.
@@ -46,7 +46,7 @@ public:
 	// Should updates run?
 	bool paused;
 
-	friend class Entity;
+	friend class UniverseObject;
 	friend class GameState;
 
 	static constexpr double PHYSICS_STEPSIZE = 1.0 / 30.0;
@@ -72,8 +72,8 @@ public:
 	// Exposed to lua to be addable as a drawable
 	// TODO: This feels like a horrible hack
 	std::shared_ptr<PlanetarySystem> system_ptr;
-	std::vector<Entity*> entities;
-	std::unordered_map<int64_t, Entity*> entities_by_id;
+	std::vector<UniverseObject*> entities;
+	std::unordered_map<int64_t, UniverseObject*> entities_by_id;
 
 	template<typename T, typename... Args>
 	T* create_entity(Args&&... args);
@@ -83,7 +83,7 @@ public:
 
 	// Returns nullptr if not found
 	// Do not hold the pointer for long, calling this each time you access the entity is better
-	Entity* get_entity(int64_t id);
+	UniverseObject* get_entity(int64_t id);
 
 	template<typename T> 
 	T* get_entity_as(int64_t id);
@@ -101,14 +101,14 @@ public:
 template<typename T, typename ...Args>
 inline T* Universe::create_entity(Args&&... args)
 {
-	static_assert(std::is_base_of<Entity, T>::value, "Entities must inherit from the Entity class");
+	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
 
 	T* n_ent = new T(std::forward<Args>(args)...);
-	Entity* as_ent = (Entity*)n_ent;
+	UniverseObject* as_ent = (UniverseObject*)n_ent;
 
 	int64_t id = get_uid();
 
-	entities.push_back((Entity*)n_ent);
+	entities.push_back((UniverseObject*)n_ent);
 	entities_by_id[id] =  as_ent;
 
 	emit_event("core:new_entity", id);
@@ -121,9 +121,9 @@ inline T* Universe::create_entity(Args&&... args)
 template<typename T>
 inline void Universe::remove_entity(T* ent)
 {
-	static_assert(std::is_base_of<Entity, T>::value, "Entities must inherit from the Entity class");
+	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
 
-	Entity* as_ent = (Entity*)ent;
+	UniverseObject* as_ent = (UniverseObject*)ent;
 	for (auto it = entities.begin(); it != entities.end(); it++)
 	{
 		if (*it == ent)
@@ -145,8 +145,8 @@ inline void Universe::remove_entity(T* ent)
 template<typename T>
 inline T* Universe::get_entity_as(int64_t id)
 {
-	static_assert(std::is_base_of<Entity, T>::value, "Entities must inherit from the Entity class");
-	Entity* ent = get_entity(id);
+	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
+	UniverseObject* ent = get_entity(id);
 	return dynamic_cast<T*>(ent);
 }
 

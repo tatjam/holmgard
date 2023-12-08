@@ -209,7 +209,7 @@ void GameState::load_inner(cpptoml::table &from)
 			}
 			std::string type = *entity->get_as<std::string>("type");
 
-			Entity* n_ent = Entity::load(type, entity);
+			UniverseObject* n_ent = UniverseObject::load(type, entity);
 			universe.entities.push_back(n_ent);
 
 			ent_to_id[n_ent] = id;
@@ -218,7 +218,7 @@ void GameState::load_inner(cpptoml::table &from)
 
 
 	// Init the hashtable
-	for(Entity* ent : universe.entities)
+	for(UniverseObject* ent : universe.entities)
 	{
 		universe.entities_by_id[ent_to_id[ent]] = ent;
 	}
@@ -226,7 +226,7 @@ void GameState::load_inner(cpptoml::table &from)
 	universe.uid = last_uid;
 
 	// Finally, init the entities
-	for(Entity* ent : universe.entities)
+	for(UniverseObject* ent : universe.entities)
 	{
 		ent->setup(&universe, ent_to_id[ent]);
 	}

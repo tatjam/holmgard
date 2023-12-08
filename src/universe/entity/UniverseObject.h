@@ -13,28 +13,14 @@
 
 #include <cpptoml.h>
 
-// An entity is something which exists on the world,
-// it has graphics, and can exists on the bullet physics
+// An UniverseObject is something which exists on the universe, and can exist on its bullet physics
 // world.
-// Planets are not entities for perfomance, but they could
-// be (TODO: Maybe it's a good idea?)
+// It supports trajectory propagation, and as such acts as a base for all physical objects in the game.
+// It can be used for non-physical objects that are somehow related to the universe
 //
-// Physics are enabled on a variety of conditions:
-// Note that focusing does not necessarily mean actually being playing as said entity
-// it can be enabled for any entity by the user (for example Falcon 9 boosters)
-// - While timewarp is low:
-//		-> If the entity is focused
-//		-> If the entity is near a planet surface and it is not landed
-//		-> If the entity is close enough to a focused entity
-//
-// Physics can't be enabled while timewarp is high, but timewarp will warn the user
-// if any entity cannot currently timewarp because of physics (it can optionally
-// block or reduce timewarp)
-// We store history for entities. History is generated automaticaly, and configured
-// by the entity itself.
-// Predictions, as they are computationally expensive, are generated on demand externally to the entity
-// which may optionally not have n-body behaviour with the has_custom_propagation flag
-class Entity : public Drawable
+// Communication between UniverseObjects is freely handled by the user, the recommended architecture
+// is the event publish-subscribe system
+class UniverseObject
 {
 private:
 
@@ -124,23 +110,11 @@ public:
 	std::string get_type();
 
 	// Used while loading saves
-	static Entity* load(std::string type, std::shared_ptr<cpptoml::table> toml);
+	static UniverseObject* load(std::string type, std::shared_ptr<cpptoml::table> toml);
 	void save(cpptoml::table& to);
 
-	explicit Entity(std::string script_path, std::string in_pkg, std::shared_ptr<cpptoml::table> init_toml,
-	std::vector<sol::object> args, bool is_create);
-
-	void deferred_pass(CameraUniforms& cu, bool is_env_map = false) override;
-	void forward_pass(CameraUniforms& cu, bool is_env_map = false) override;
-	void gui_pass(CameraUniforms& cu) override;
-	void shadow_pass(ShadowCamera& cu) override;
-	void far_shadow_pass(ShadowCamera& cu) override;
-	bool needs_deferred_pass() override;
-	bool needs_forward_pass() override;
-	bool needs_gui_pass() override;
-	bool needs_shadow_pass() override;
-	bool needs_far_shadow_pass() override;
-	bool needs_env_map_pass() override;
+	explicit UniverseObject(std::string script_path, std::string in_pkg, std::shared_ptr<cpptoml::table> init_toml,
+							std::vector<sol::object> args, bool is_create);
 
 	// This is called already within a window so don't create one
 	void do_debug_imgui();
@@ -149,6 +123,6 @@ public:
 	// Objects with higher priority get drawn first
 	virtual int get_forward_priority() { return 0.0; }
 
-	~Entity();
+	~UniverseObject();
 
 };

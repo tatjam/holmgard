@@ -3,7 +3,7 @@
 #include "renderer/camera/SimpleCamera.h"
 
 class GameState;
-class Entity;
+class UniverseObject;
 
 // Allows accesing debug for all entities, scenes itself and a bunch of useful tools
 // Works as a menubar
@@ -12,8 +12,8 @@ class GameStateDebug
 private:
 	GameState* g;
 
-	std::vector<Entity*> shown_entity;
-	Entity* centered_camera;
+	std::vector<UniverseObject*> shown_entity;
+	UniverseObject* centered_camera;
 
 	bool terminal_shown;
 	bool entities_shown;

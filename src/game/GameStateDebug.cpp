@@ -47,12 +47,12 @@ void GameStateDebug::update()
 			ImGui::End();
 		}
 
-		for(Entity* e : osp->universe->entities)
+		for(UniverseObject* e : osp->universe->entities)
 		{
 			if(vector_contains(shown_entity, e))
 			{
 				ImGui::PushID(e);
-				std::string name_str = "Entity (" + std::to_string(e->get_uid()) + ") " + e->get_type();
+				std::string name_str = "UniverseObject (" + std::to_string(e->get_uid()) + ") " + e->get_type();
 				ImGui::Begin(name_str.c_str());
 				e->do_debug_imgui();
 				ImGui::End();
@@ -89,7 +89,7 @@ void GameStateDebug::do_entities()
 {
 	do_docking_button(&entities_undocked);
 
-	for (Entity *e : osp->universe->entities)
+	for (UniverseObject *e : osp->universe->entities)
 	{
 		ImGui::PushID(e);
 		ImGui::Text("%lld (%s)", e->get_uid(), e->get_type().c_str());
@@ -199,7 +199,7 @@ void GameStateDebug::update_cam(double dt)
 {
 	cam.update(dt);
 	bool found = false;
-	for (Entity *e : osp->universe->entities)
+	for (UniverseObject *e : osp->universe->entities)
 	{
 		if(e == centered_camera)
 		{
