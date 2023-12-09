@@ -47,11 +47,11 @@ void GameStateDebug::update()
 			ImGui::End();
 		}
 
-		for(UniverseObject* e : hgr->universe->objects)
+		for(std::shared_ptr<UniverseObject> e : hgr->universe->objects)
 		{
 			if(vector_contains(shown_objects, e))
 			{
-				ImGui::PushID(e);
+				ImGui::PushID(&(*e));
 				std::string name_str = "UniverseObject (" + std::to_string(e->get_uid()) + ") " + e->get_type();
 				ImGui::Begin(name_str.c_str());
 				e->do_debug_imgui();
@@ -89,9 +89,9 @@ void GameStateDebug::do_objects()
 {
 	do_docking_button(&objects_undocked);
 
-	for (UniverseObject *e : hgr->universe->objects)
+	for (std::shared_ptr<UniverseObject> e : hgr->universe->objects)
 	{
-		ImGui::PushID(e);
+		ImGui::PushID(&(*e));
 		ImGui::Text("%lld (%s)", e->get_uid(), e->get_type().c_str());
 		ImGui::SameLine();
 
@@ -199,7 +199,7 @@ void GameStateDebug::update_cam(double dt)
 {
 	cam.update(dt);
 	bool found = false;
-	for (UniverseObject *e : hgr->universe->objects)
+	for (std::shared_ptr<UniverseObject> e : hgr->universe->objects)
 	{
 		if(e == centered_camera)
 		{

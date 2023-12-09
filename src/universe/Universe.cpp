@@ -22,7 +22,7 @@ void Universe::physics_update(double pdt)
 	// Do the physics update on the system
 	system.update(pdt, bt_world, true);
 
-	for (UniverseObject* e : objects)
+	for (std::shared_ptr<UniverseObject> e : objects)
 	{
 		e->physics_update(pdt);
 	}
@@ -36,7 +36,7 @@ void Universe::update(double dt)
 	{
 		system.update(dt, bt_world, false);
 
-		for (UniverseObject* e : objects)
+		for (std::shared_ptr<UniverseObject> e : objects)
 		{
 			e->update(dt);
 		}
@@ -108,16 +108,46 @@ Universe::Universe() : system(this)
 
 Universe::~Universe()
 {
-	for(UniverseObject* ent : objects)
-	{
-		delete ent;
-	}
 
 #ifdef OSPGL_LRDB
 	disable_debugging();
 #endif
 
 	lua_state.collect_garbage();
+}
+
+std::shared_ptr<UniverseObject>
+Universe::create_object(std::string script_path, std::string in_pkg, std::shared_ptr<cpptoml::table> init_toml,
+						std::vector<sol::object> args, bool is_create)
+{
+	auto n_ent = std::make_shared<UniverseObject>(script_path, in_pkg, init_toml, args, is_create);
+	int64_t id = get_uid();
+	objects.push_back(n_ent);
+	objects_by_id[id] = &(*n_ent);
+
+	emit_event("core:new_object", id);
+
+	n_ent->is_in_universe = true;
+	n_ent->setup(this, id);
+
+	return n_ent;
+}
+
+void Universe::remove_object(UniverseObject *ent)
+{
+	ent->is_in_universe = false;
+	for (auto it = objects.begin(); it != objects.end(); it++)
+	{
+		if (&(**it) == ent)
+		{
+			objects.erase(it);
+			break;
+		}
+	}
+
+	emit_event("core:remove_object", ent->get_uid());
+
+	objects_by_id.erase(ent->get_uid());
 }
 
 #ifdef OSPGL_LRDB

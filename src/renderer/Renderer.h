@@ -30,18 +30,18 @@ class UniverseObject;
 // Allows scaled rendering of the 3D scene to a framebuffer
 // and then UI drawing (in real resolution) over it
 // It first does a deferred rendering pass, and then a
-// forward rendering pass for transparent objects 
+// forward rendering pass for transparent objects
 // (aka atmospheres), and for GUIs
-// 
+//
 // NOTE: It does not support lights for forward objects
 // TODO: Maybe support them? I don't think they are neccesary
-// 
+//
 // Shadows:
-// 		SunLights use a special system (they need two cascades, one 
+// 		SunLights use a special system (they need two cascades, one
 // 		for landscape shadows (far) and another for vehicle shadows (close))
-// 
+//
 // 		Note: Sunlight is approximated as a directional light,
-// 			eclipses could be slightly different	
+// 			eclipses could be slightly different
 class Renderer
 {
 private:
@@ -89,18 +89,15 @@ private:
 
 	void do_debug(CameraUniforms& cu);
 
-	// Used for lua lifetime management, we don't manage memory here
-	// but as all drawables are created from lua they are eventually garbage
-	// collected once the shared_ptr goes null
+	// We only store drawables for one frame
 	std::vector<Drawable*> deferred;
 	std::vector<Drawable*> forward;
 	std::vector<Drawable*> gui;
 	std::vector<Drawable*> shadow;
 	std::vector<Drawable*> far_shadow;
 	std::vector<Drawable*> env_map;
-	std::vector<std::shared_ptr<Drawable>> all_drawables;
 
-	std::vector<std::shared_ptr<Light>> lights;
+	std::vector<Light*> lights;
 
 	// Used for env_map sampling
 	glm::dvec3 env_last_pos;
@@ -164,29 +161,16 @@ public:
 
 
 	void add_drawable(std::shared_ptr<Drawable> d, std::string n_id);
-	void remove_drawable(Drawable* d);
-	void remove_all_drawables();
 
 	// Lights are different
 	void add_light(std::shared_ptr<Light> light);
-	void remove_light(Light* light);
-	void remove_all_lights();
 
 	// This is a workaround for an issue in sol where shared_ptr cannot be cast to one another
 	template<typename T>
 	void add_drawable_lua(std::shared_ptr<T> d){ add_drawable(d, ""); }
 
-	void add_drawable_entity_lua(UniverseObject* ent);
-
 	template<typename T>
 	void add_light_lua(std::shared_ptr<T> d){ add_light(d); }
-
-	// removes all lights and drawables
-	void clear()
-	{
-		remove_all_drawables();
-		remove_all_lights();
-	}
 
 	int get_width(bool gui = false);
 	int get_height(bool gui = false);

@@ -383,8 +383,6 @@ void Renderer::render(PlanetarySystem* system)
 		}
 	}
 
-
-
 	prepare_deferred();
 
 	if (render_enabled)
@@ -436,15 +434,25 @@ void Renderer::render(PlanetarySystem* system)
 		// Draw text_drawer added text
 	}
 
+	// Delete all added drawables for next frame
+	deferred.clear();
+	forward.clear();
+	gui.clear();
+	shadow.clear();
+	far_shadow.clear();
+	env_map.clear();
+	lights.clear();
+
 }
 
 
 void Renderer::add_drawable(std::shared_ptr<Drawable> d, std::string n_id)
 {
-	logger->check(!d->is_in_renderer(), "Tried to add an already added drawable");
-
-	drawable_uid++,
-	d->notify_add_to_renderer(drawable_uid);
+	if(d->drawable_uid < 0)
+	{
+		drawable_uid++;
+		d->notify_add_to_renderer(drawable_uid);
+	}
 
 	if (n_id != "")
 	{
@@ -481,7 +489,6 @@ void Renderer::add_drawable(std::shared_ptr<Drawable> d, std::string n_id)
 		env_map.push_back(d.get());
 	}
 
-	all_drawables.push_back(d);
 }
 
 
@@ -505,75 +512,9 @@ static bool remove_from(std::vector<T>& array, T d)
 	return has_it;
 }
 
-void Renderer::remove_drawable(Drawable* drawable)
-{
-	logger->check(drawable->is_in_renderer(), "Tried to remove a non-present drawable");
-
-	drawable->notify_remove_from_renderer();
-
-
-	if (drawable->needs_deferred_pass())
-	{
-		remove_from(deferred,  drawable);
-	}
-
-	if (drawable->needs_forward_pass())
-	{
-		remove_from(forward, drawable);
-	}
-
-	if (drawable->needs_gui_pass())
-	{
-		remove_from(gui, drawable);
-	}
-
-	if (drawable->needs_shadow_pass())
-	{
-		remove_from(shadow, drawable);
-	}
-
-	if(drawable->needs_far_shadow_pass())
-	{
-		remove_from(far_shadow, drawable);
-	}
-
-	if(drawable->needs_env_map_pass())
-	{
-		remove_from(env_map, drawable);
-	}
-
-	// This may cause object deletion
-	for (auto it = all_drawables.begin(); it != all_drawables.end();)
-	{
-		if ((*it).get() == drawable)
-			it = all_drawables.erase(it);
-		else
-			it++;
-	}
-
-
-}
-
 void Renderer::add_light(std::shared_ptr<Light> light)
 {
-	logger->check(!light->is_added_to_renderer(), "Tried to add an already added light");
-	light->set_added(true);
-	
-	lights.push_back(light);
-}
-
-void Renderer::remove_light(Light* light)
-{
-	logger->check(light->is_added_to_renderer(), "Tried to remove a non-added light");
-	light->set_added(false);
-
-	for (auto it = lights.begin(); it != lights.end(); )
-	{
-		if ((*it).get() == light)
-			it = lights.erase(it);
-		else
-			it++;
-	}
+	lights.push_back(&(*light));
 }
 
 int Renderer::get_width(bool gui)
@@ -759,7 +700,6 @@ Renderer::~Renderer()
 {
 	// Remove images and other assets before deletion as otherwise OpenGL will crash
 	brdf = AssetHandle<Image>();
-	clear();
 	if (gbuffer != nullptr)
 	{
 		delete gbuffer;
@@ -812,32 +752,6 @@ void Renderer::env_map_sample()
 			env_face = 0;
 		}
 	}
-}
-
-void Renderer::remove_all_drawables()
-{
-	// This could be done more efficiently
-	std::vector<std::shared_ptr<Drawable>> drawable_copy = all_drawables;
-	for(auto d : drawable_copy)
-	{
-		remove_drawable(d.get());
-	}
-
-}
-
-void Renderer::remove_all_lights()
-{
-	std::vector<std::shared_ptr<Light>> lights_copy = lights;
-	for(auto l : lights_copy)
-	{
-		remove_light(l.get());
-	}
-}
-
-void Renderer::add_drawable_entity_lua(UniverseObject* ent)
-{
-	auto ptr = std::shared_ptr<Drawable>((Drawable*)ent, &null_deleter<Drawable>);
-	add_drawable(ptr, "");
 }
 
 

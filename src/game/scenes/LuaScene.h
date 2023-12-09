@@ -25,6 +25,10 @@ public:
 	sol::environment env;
 	sol::state* lua_state;
 
+	// Only called if the scene is loaded on a newly created game state
+	// just before load is called
+	// Use this to setup the universe
+	void first_load() override;
 	void load() override;
 	// It's your responsability to call universe->update(dt) (or not)
 	// Gets passed hgr->dt

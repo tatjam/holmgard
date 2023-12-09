@@ -285,6 +285,7 @@ void Holmgard::end_gamestate()
 {
 	// This should clean up, including memory leaks from lua, etc...
 	delete game_state;
+	logger->set_this_thread_lua_state(nullptr);
 	universe = nullptr;
 	// TODO: Proper cleanup of assets and game database
 	launch_menu("");
@@ -292,5 +293,6 @@ void Holmgard::end_gamestate()
 
 void Holmgard::launch_gamestate(GameState* g)
 {
+	logger->set_this_thread_lua_state(game_state->universe.lua_state);
 	game_state->init();
 }

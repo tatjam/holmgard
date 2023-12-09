@@ -14,6 +14,9 @@ public:
 	// A global GUI input is required for all screens (so they are compatible with each other and debug tools)
 	GUIInput gui_input;
 
+	// Called when the scene is used to initialize a game state
+	// (Typically, will be the scene set in HOLMGARD_ENTRYPOINT)
+	virtual void first_load() = 0;
 	// Called the frame the scene is loaded
 	virtual void load() = 0;
 	// It's your responsability to call universe->update(dt) (or not)

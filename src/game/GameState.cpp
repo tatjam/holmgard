@@ -144,6 +144,7 @@ GameState *GameState::create_main_menu(const std::string &skip_to_save)
 		// Create an empty GameState
 		GameState* out = create_empty_gamestate();
 		out->scene = new LuaScene(out, entry_point, "core", {});
+		out->scene->first_load();
 		return out;
 #endif
 	}
@@ -209,26 +210,26 @@ void GameState::load_inner(cpptoml::table &from)
 			}
 			std::string type = *object->get_as<std::string>("type");
 
-			UniverseObject* n_ent = UniverseObject::load(type, object);
+			auto n_ent = UniverseObject::load(type, object);
 			universe.objects.push_back(n_ent);
 
-			ent_to_id[n_ent] = id;
+			ent_to_id[&(*n_ent)] = id;
 		}
 	}
 
 
 	// Init the hashtable
-	for(UniverseObject* ent : universe.objects)
+	for(std::shared_ptr<UniverseObject> ent : universe.objects)
 	{
-		universe.objects_by_id[ent_to_id[ent]] = ent;
+		universe.objects_by_id[ent_to_id[&(*ent)]] = &(*ent);
 	}
 
 	universe.uid = last_uid;
 
 	// Finally, init the objects
-	for(UniverseObject* ent : universe.objects)
+	for(std::shared_ptr<UniverseObject> ent : universe.objects)
 	{
-		ent->setup(&universe, ent_to_id[ent]);
+		ent->setup(&universe, ent_to_id[&(*ent)]);
 	}
 
 }

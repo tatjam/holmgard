@@ -122,13 +122,20 @@ UniverseObject::~UniverseObject()
 
 }
 
-UniverseObject* UniverseObject::load(std::string type, std::shared_ptr<cpptoml::table> toml)
+std::shared_ptr<UniverseObject> UniverseObject::load(std::string type, std::shared_ptr<cpptoml::table> toml)
 {
-	UniverseObject* n_ent = new UniverseObject(type, "core", toml, {}, false);
+	std::vector<sol::object> args;
+	auto n_ent = std::make_shared<UniverseObject>(type, "core", toml, args, false);
 	return n_ent;
 }
 
 void UniverseObject::do_debug_imgui()
 {
 	LuaUtil::call_function_if_present(env["do_debug_imgui"]);
+}
+
+void UniverseObject::remove()
+{
+	universe->remove_object(this);
+
 }

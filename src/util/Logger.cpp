@@ -8,6 +8,8 @@
 #include <string>
 #include <chrono>
 
+thread_local static lua_State* thread_lua_state;
+
 #ifdef OSPGL_STACKTRACES
 #include <backward/backward.hpp>
 #endif
@@ -143,6 +145,16 @@ void Logger::log(int level, const char* format, fmt::format_args args)
 
 	std::cout << str << rang::fg::reset << rang::bg::reset;
 
+	// This may give a duplicated stack trace on some cases
+	if(thread_lua_state && level >= HOLMGARD_EXCEPTION_LEVEL)
+	{
+		luaL_traceback(thread_lua_state, thread_lua_state, NULL, 1);
+		const char* tback = lua_tostring(thread_lua_state, -1);
+		std::cout << rang::fg::red << tback << rang::fg::reset << std::endl;
+		toFile.push_back(tback);
+	}
+
+
 	toFile.push_back(str);
 	// TODO: Implement some mechanism to clean the log
 	saved_log.emplace_back(str, level);
@@ -197,6 +209,7 @@ void Logger::onLog(bool important)
 
 Logger::Logger()
 {
+	thread_lua_state = nullptr;
 	wantedFlushCounter = 1000;
 	flushCounter = wantedFlushCounter;
 
@@ -217,6 +230,11 @@ Logger::~Logger()
 {
 	flushCounter = 0;
 	onLog();
+}
+
+void Logger::set_this_thread_lua_state(lua_State *st)
+{
+	thread_lua_state = st;
 }
 
 Logger* logger;

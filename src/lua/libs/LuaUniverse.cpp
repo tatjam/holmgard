@@ -27,10 +27,8 @@ void LuaUniverse::load_to(sol::table& table)
 			 {
 				 args_v.push_back(v);
 			 }
-			auto* ent = uv->create_object<UniverseObject>(script_path,
-														  env["__pkg"].get_or<std::string>("core"), nullptr, args_v, true);
+			return uv->create_object(script_path, env["__pkg"].get_or<std::string>("core"), nullptr, args_v, true);
 
-			return ent;
 		 }
 	);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "renderer/camera/SimpleCamera.h"
+#include <memory>
 
 class GameState;
 class UniverseObject;
@@ -12,8 +13,8 @@ class GameStateDebug
 private:
 	GameState* g;
 
-	std::vector<UniverseObject*> shown_objects;
-	UniverseObject* centered_camera;
+	std::vector<std::shared_ptr<UniverseObject>> shown_objects;
+	std::shared_ptr<UniverseObject> centered_camera;
 
 	bool terminal_shown;
 	bool objects_shown;

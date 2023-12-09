@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 #include <vector>
 #include <mutex>
+#include <sol/sol.hpp>
 
 // Comment to disable "debug" logging in Release
 #define LOG_DEBUG_ALWAYS
@@ -24,6 +25,8 @@ public:
 	std::mutex mtx;
 
 	void stacktrace();
+
+	void set_this_thread_lua_state(lua_State* st);
 
 	template <typename... Args>
 	void debug(const char* format, const Args & ... args)

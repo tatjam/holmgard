@@ -17,11 +17,16 @@
 // world.
 // It supports trajectory propagation, and as such acts as a base for all physical objects in the game.
 // It can be used for non-physical objects that are somehow related to the universe
+// It may be added to the renderer as drawable.
 //
 // Communication between UniverseObjects is freely handled by the user, the recommended architecture
 // is the event publish-subscribe system
 class UniverseObject
 {
+	friend class Universe;
+protected:
+	bool is_in_universe;
+
 private:
 
 	Universe* universe;
@@ -31,6 +36,12 @@ private:
 	std::string type_str;
 
 public:
+	// Returns true if the object has not been removed.
+	// Useful if you keep references (not recommended, but required sometimes!)
+	bool exists() const { return is_in_universe; }
+	// This may not free the object itself until all references to it disappear
+	// but it will remove it from the universe, thus stopping updates and similar
+	void remove();
 	EntityHistory history;
 
 	sol::environment env;
@@ -110,7 +121,7 @@ public:
 	std::string get_type();
 
 	// Used while loading saves
-	static UniverseObject* load(std::string type, std::shared_ptr<cpptoml::table> toml);
+	static std::shared_ptr<UniverseObject> load(std::string type, std::shared_ptr<cpptoml::table> toml);
 	void save(cpptoml::table& to);
 
 	explicit UniverseObject(std::string script_path, std::string in_pkg, std::shared_ptr<cpptoml::table> init_toml,

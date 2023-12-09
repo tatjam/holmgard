@@ -78,3 +78,8 @@ void LuaScene::do_imgui_debug()
 {
 	LuaUtil::call_function_if_present(env["do_imgui_debug"]);
 }
+
+void LuaScene::first_load()
+{
+	LuaUtil::call_function_if_present(env["first_load"]);
+}

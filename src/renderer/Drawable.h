@@ -11,7 +11,6 @@ class Drawable
 {
 private:
 
-	bool added;
 	std::string drawable_id;
 
 protected:
@@ -39,23 +38,11 @@ public:
 
 	virtual void on_add_to_renderer() {}
 
-	bool is_in_renderer() 
-	{
-		return added;
-	}
-
 	void notify_add_to_renderer(GLint uid)
 	{
-		added = true;
 		drawable_uid = uid;
-		on_add_to_renderer();
 	}
 
-	void notify_remove_from_renderer()
-	{
-		added = false;
-	}
-	
 	void set_drawable_id(const std::string& id)
 	{
 		drawable_id = id;
@@ -69,6 +56,6 @@ public:
 
 	Drawable()
 	{
-		added = false;
+		drawable_uid = -1;
 	}
 };

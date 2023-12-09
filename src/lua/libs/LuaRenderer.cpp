@@ -23,7 +23,11 @@ void LuaRenderer::load_to(sol::table& table)
 				  &Renderer::add_drawable_lua<PlanetarySystem>,
 				  &Renderer::add_drawable_lua<Skybox>,
 				  &Renderer::add_drawable_lua<QuickPredictor>,
-				  &Renderer::add_drawable_entity_lua
+				  [](Renderer* renderer, sol::table table)
+					{
+						auto drawable = std::make_shared<LuaDrawable>(std::move(table));
+						renderer->add_drawable(drawable, "");
+					}
 				  ),
 		  "add_light", sol::overload(
 				  &Renderer::add_light_lua<Light>,
@@ -31,24 +35,12 @@ void LuaRenderer::load_to(sol::table& table)
 				  &Renderer::add_light_lua<EnvMap>,
 				  &Renderer::add_light_lua<SunLight>
 				  ),
-		  "add_table_as_drawable", [](Renderer* renderer, sol::table table)
-		  {
-			auto drawable = std::make_shared<LuaDrawable>(std::move(table));
-			renderer->add_drawable(drawable, "");
-			// Return the pointer to allow manual removal
-			return (std::shared_ptr<Drawable>)drawable;
-		  },
-		  "remove_drawable", &Renderer::remove_drawable,
-		  "remove_light", &Renderer::remove_light,
-		  "remove_all_drawables", &Renderer::remove_all_drawables,
-		  "remove_all_lights", &Renderer::remove_all_lights,
 		  "render", [](Renderer* rnd)
 			 {
 				// TODO: Maybe give the chance of changing rendered system?
 				// Probably not a good idea
 				rnd->render(&hgr->game_state->universe.system);
 			 },
-		  "clear", &Renderer::clear,
 		  "quality", &Renderer::quality,
 		  "env_sample_pos", &Renderer::env_sample_pos,
 		  "override_viewport", &Renderer::override_viewport,
@@ -126,7 +118,6 @@ void LuaRenderer::load_to(sol::table& table)
 			 }));
 
 	table.new_usertype<Light>("light",
-		   "is_added_to_renderer", &Light::is_added_to_renderer,
 		   "get_type", &Light::get_type);
 
 	table.new_usertype<EnvMap>("env_map", sol::base_classes, sol::bases<Light>(),

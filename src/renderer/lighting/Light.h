@@ -12,8 +12,6 @@ class Light
 {
 private:
 
-	bool is_added;
-
 public:
 
 	enum LightType
@@ -63,17 +61,6 @@ public:
 
 	}
 
-	void set_added(bool value)
-	{
-		this->is_added = value;
-	}
-
-
-	bool is_added_to_renderer()
-	{
-		return is_added;
-	}
-
 	virtual LightType get_type() = 0;
 
 	virtual ShadowCamera get_shadow_camera(glm::dvec3 camera_pos) { return ShadowCamera(); };
@@ -88,7 +75,6 @@ public:
 
 	Light()
 	{
-		is_added = false;
 	}
 };
 
