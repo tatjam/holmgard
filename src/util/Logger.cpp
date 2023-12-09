@@ -19,6 +19,14 @@
 #include <unistd.h>
 #endif
 
+#ifndef HOLMGARD_EXCEPTION_LEVEL
+#define HOLMGARD_EXCEPTION_LEVEL 3
+#endif
+
+#ifndef HOLMGARD_CRASH_LEVEL
+#define HOLMGARD_CRASH_LEVEL 3
+#endif
+
 size_t get_console_width()
 {
 #ifdef _WIN32
@@ -139,16 +147,12 @@ void Logger::log(int level, const char* format, fmt::format_args args)
 	// TODO: Implement some mechanism to clean the log
 	saved_log.emplace_back(str, level);
 
-	int crash_level = 3;
-#ifdef HOLMGARD_CRASH_LEVEL
-	crash_level = HOLMGARD_CRASH_LEVEL;
-#endif
-	if(level >= crash_level)
+	if(level >= HOLMGARD_EXCEPTION_LEVEL)
 	{
 		stacktrace();
 	}
 
-	if (level >= HOLMGARD_CRASH_LEVEL)
+	if (level >= HOLMGARD_EXCEPTION_LEVEL)
 	{
 		std::cout << "Raising exception" << std::endl;
 		flushCounter = 0;
@@ -156,7 +160,14 @@ void Logger::log(int level, const char* format, fmt::format_args args)
 
 	onLog(level >= 2);
 
-	if (level >= HOLMGARD_CRASH_LEVEL)
+	if(level >= HOLMGARD_CRASH_LEVEL)
+	{
+		// If we throw, the stacktrace will land on lua land
+		// This is easier for debugging
+		abort();
+	}
+
+	if (level >= HOLMGARD_EXCEPTION_LEVEL)
 	{
 		throw("Fatal error");
 	}
