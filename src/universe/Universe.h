@@ -72,21 +72,21 @@ public:
 	// Exposed to lua to be addable as a drawable
 	// TODO: This feels like a horrible hack
 	std::shared_ptr<PlanetarySystem> system_ptr;
-	std::vector<UniverseObject*> entities;
-	std::unordered_map<int64_t, UniverseObject*> entities_by_id;
+	std::vector<UniverseObject*> objects;
+	std::unordered_map<int64_t, UniverseObject*> objects_by_id;
 
 	template<typename T, typename... Args>
-	T* create_entity(Args&&... args);
+	T* create_object(Args&&... args);
 
 	template<typename T>
-	void remove_entity(T* ent);
+	void remove_object(T* ent);
 
 	// Returns nullptr if not found
 	// Do not hold the pointer for long, calling this each time you access the entity is better
-	UniverseObject* get_entity(int64_t id);
+	UniverseObject* get_object(int64_t id);
 
 	template<typename T> 
-	T* get_entity_as(int64_t id);
+	T* get_object_as(int64_t id);
 
 	// Note: This is automatically called from bullet
 	void physics_update(double pdt);
@@ -99,7 +99,7 @@ public:
 };
 
 template<typename T, typename ...Args>
-inline T* Universe::create_entity(Args&&... args)
+inline T* Universe::create_object(Args&&... args)
 {
 	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
 
@@ -108,10 +108,10 @@ inline T* Universe::create_entity(Args&&... args)
 
 	int64_t id = get_uid();
 
-	entities.push_back((UniverseObject*)n_ent);
-	entities_by_id[id] =  as_ent;
+	objects.push_back((UniverseObject*)n_ent);
+	objects_by_id[id] =  as_ent;
 
-	emit_event("core:new_entity", id);
+	emit_event("core:new_object", id);
 	
 	as_ent->setup(this, id);
 
@@ -119,34 +119,33 @@ inline T* Universe::create_entity(Args&&... args)
 }
 
 template<typename T>
-inline void Universe::remove_entity(T* ent)
+inline void Universe::remove_object(T* ent)
 {
-	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
+	static_assert(std::is_base_of<UniverseObject, T>::value, "Objects must inherit from the UniverseObject class");
 
 	UniverseObject* as_ent = (UniverseObject*)ent;
-	for (auto it = entities.begin(); it != entities.end(); it++)
+	for (auto it = objects.begin(); it != objects.end(); it++)
 	{
 		if (*it == ent)
 		{
-			entities.erase(it);
+			objects.erase(it);
 			break;
 		}
 	}
 
-	emit_event("core:remove_entity", as_ent->get_uid());
+	emit_event("core:remove_object", as_ent->get_uid());
 
-	// Remove from entities by id
-	entities_by_id.erase(as_ent->get_uid());
+	objects_by_id.erase(as_ent->get_uid());
 	
-	// Actually destroy the entity
+	// Actually destroy the object
 	delete ent;
 }
 
 template<typename T>
-inline T* Universe::get_entity_as(int64_t id)
+inline T* Universe::get_object_as(int64_t id)
 {
 	static_assert(std::is_base_of<UniverseObject, T>::value, "Entities must inherit from the UniverseObject class");
-	UniverseObject* ent = get_entity(id);
+	UniverseObject* ent = get_object(id);
 	return dynamic_cast<T*>(ent);
 }
 

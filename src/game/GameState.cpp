@@ -194,23 +194,23 @@ void GameState::load_inner(cpptoml::table &from)
 	universe.system.update(0.0, universe.bt_world, false);
 	universe.system.update(0.0, universe.bt_world, true);
 
-	// Load entities
+	// Load objects
 	int64_t last_uid = *from.get_as<int64_t>("uid");
-	auto entities = from.get_table_array("entity");
+	auto objects = from.get_table_array("object");
 
-	if (entities)
+	if (objects)
 	{
-		for (const auto& entity : *entities)
+		for (const auto& object : *objects)
 		{
-			int64_t id = entity->get_as<int64_t>("id").value_or(0);
+			int64_t id = object->get_as<int64_t>("id").value_or(0);
 			if (id > last_uid || id <= 0)
 			{
 				logger->fatal("Invalid UID {} in save", id);
 			}
-			std::string type = *entity->get_as<std::string>("type");
+			std::string type = *object->get_as<std::string>("type");
 
-			UniverseObject* n_ent = UniverseObject::load(type, entity);
-			universe.entities.push_back(n_ent);
+			UniverseObject* n_ent = UniverseObject::load(type, object);
+			universe.objects.push_back(n_ent);
 
 			ent_to_id[n_ent] = id;
 		}
@@ -218,15 +218,15 @@ void GameState::load_inner(cpptoml::table &from)
 
 
 	// Init the hashtable
-	for(UniverseObject* ent : universe.entities)
+	for(UniverseObject* ent : universe.objects)
 	{
-		universe.entities_by_id[ent_to_id[ent]] = ent;
+		universe.objects_by_id[ent_to_id[ent]] = ent;
 	}
 
 	universe.uid = last_uid;
 
-	// Finally, init the entities
-	for(UniverseObject* ent : universe.entities)
+	// Finally, init the objects
+	for(UniverseObject* ent : universe.objects)
 	{
 		ent->setup(&universe, ent_to_id[ent]);
 	}

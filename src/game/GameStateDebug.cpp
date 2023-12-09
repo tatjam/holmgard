@@ -28,10 +28,10 @@ void GameStateDebug::update()
 			do_assets();
 			ImGui::End();
 		}
-		if(entities_undocked)
+		if(objects_undocked)
 		{
 			ImGui::Begin("Entities");
-			do_entities();
+			do_objects();
 			ImGui::End();
 		}
 		if(scene_undocked)
@@ -47,9 +47,9 @@ void GameStateDebug::update()
 			ImGui::End();
 		}
 
-		for(UniverseObject* e : hgr->universe->entities)
+		for(UniverseObject* e : hgr->universe->objects)
 		{
-			if(vector_contains(shown_entity, e))
+			if(vector_contains(shown_objects, e))
 			{
 				ImGui::PushID(e);
 				std::string name_str = "UniverseObject (" + std::to_string(e->get_uid()) + ") " + e->get_type();
@@ -72,7 +72,7 @@ GameStateDebug::GameStateDebug(GameState* gamestate)
 
 	terminal_undocked = false;
 	assets_undocked = false;
-	entities_undocked = false;
+	objects_undocked = false;
 	scene_undocked = false;
 	renderer_undocked = false;
 
@@ -85,11 +85,11 @@ void GameStateDebug::do_terminal()
 	do_docking_button(&terminal_undocked);
 }
 
-void GameStateDebug::do_entities()
+void GameStateDebug::do_objects()
 {
-	do_docking_button(&entities_undocked);
+	do_docking_button(&objects_undocked);
 
-	for (UniverseObject *e : hgr->universe->entities)
+	for (UniverseObject *e : hgr->universe->objects)
 	{
 		ImGui::PushID(e);
 		ImGui::Text("%lld (%s)", e->get_uid(), e->get_type().c_str());
@@ -101,19 +101,19 @@ void GameStateDebug::do_entities()
 			override_camera = true;
 		}
 		ImGui::SameLine();
-		if(vector_contains(shown_entity, e))
+		if(vector_contains(shown_objects, e))
 		{
 			if(ImGui::Button("Hide"))
 			{
-				shown_entity.erase(std::remove(shown_entity.begin(), shown_entity.end(), e),
-					   shown_entity.end());
+				shown_objects.erase(std::remove(shown_objects.begin(), shown_objects.end(), e),
+					   shown_objects.end());
 			}
 		}
 		else
 		{
 			if(ImGui::Button("Show"))
 			{
-				shown_entity.push_back(e);
+				shown_objects.push_back(e);
 			}
 		}
 		ImGui::PopID();
@@ -144,9 +144,9 @@ void GameStateDebug::do_launcher()
 		}
 	}
 	ImGui::BeginTabBar("Tabs");
-	if(!entities_undocked && ImGui::BeginTabItem("Entities"))
+	if(!objects_undocked && ImGui::BeginTabItem("Entities"))
 	{
-		do_entities();
+		do_objects();
 		ImGui::EndTabItem();
 	}
 	if(!terminal_undocked && ImGui::BeginTabItem("Terminal"))
@@ -199,7 +199,7 @@ void GameStateDebug::update_cam(double dt)
 {
 	cam.update(dt);
 	bool found = false;
-	for (UniverseObject *e : hgr->universe->entities)
+	for (UniverseObject *e : hgr->universe->objects)
 	{
 		if(e == centered_camera)
 		{

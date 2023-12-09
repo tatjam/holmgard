@@ -13,12 +13,12 @@ void LuaUniverse::load_to(sol::table& table)
 		"update", &Universe::update,
 		"bt_world", &Universe::bt_world,
 		"system", &Universe::system_ptr,
-		"get_entity", &Universe::get_entity,
-		"entities", sol::property([](Universe* uv)
+		"get_object", &Universe::get_object,
+		"objects", sol::property([](Universe* uv)
 		  {
-			return sol::as_table(uv->entities);
+			return sol::as_table(uv->objects);
 		  }),
-	    "create_entity", [](Universe* uv, const std::string& script_path, sol::this_environment te, sol::variadic_args args)
+	    "create_object", [](Universe* uv, const std::string& script_path, sol::this_environment te, sol::variadic_args args)
 		 {
 			sol::environment& env = te;
 			 // Not sure if this is neccesary, maybe just pass args?
@@ -27,7 +27,7 @@ void LuaUniverse::load_to(sol::table& table)
 			 {
 				 args_v.push_back(v);
 			 }
-			auto* ent = uv->create_entity<UniverseObject>(script_path,
+			auto* ent = uv->create_object<UniverseObject>(script_path,
 														  env["__pkg"].get_or<std::string>("core"), nullptr, args_v, true);
 
 			return ent;
@@ -55,7 +55,7 @@ void LuaUniverse::load_to(sol::table& table)
 			  "radius", sol::readonly(&ElementConfig::radius)
 	);
 
-	table.new_usertype<UniverseObject>("entity", sol::no_constructor,
+	table.new_usertype<UniverseObject>("object", sol::no_constructor,
 									   "enable_bullet", &UniverseObject::enable_bullet,
 									   "disable_bullet", &UniverseObject::disable_bullet,
 									   "set_bullet_enabled", &UniverseObject::enable_bullet_wrapper,
