@@ -1,5 +1,7 @@
 #pragma once
 #include "LuaLib.h"
+#include "PluginMacroHelper.h"
+
 
 /*
 	global:
@@ -52,6 +54,9 @@ public:
 		INPUT,			// LuaInput
 		ORBIT,			// LuaOrbit
 		EVENTS,			// LuaEvents
+#ifdef HOLMGARD_PLUGINS
+		HOLMGARD_PLUGINS(HOLMGARD_MAKE_ENUM)
+#endif
 		COUNT,
 	};
 

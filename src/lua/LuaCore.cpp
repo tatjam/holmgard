@@ -87,77 +87,44 @@ int LoadFileRequire(lua_State* L)
 LuaCore::LibraryID LuaCore::name_to_id(const std::string & name)
 {
 	if (name == "logger")
-	{
 		return LibraryID::LOGGER;
-	}
 	else if (name == "debug_drawer")
-	{
 		return LibraryID::DEBUG_DRAWER;
-	}
 	else if (name == "glm")
-	{
 		return LibraryID::GLM;
-	}
 	else if (name == "noise")
-	{
 		return LibraryID::NOISE;
-	}
 	else if (name == "assets")
-	{
 		return LibraryID::ASSETS;
-	}
 	else if(name == "bullet")
-	{
 		return LibraryID::BULLET;
-	}
 	else if(name == "toml")
-	{
 		return LibraryID::TOML;
-	}
 	else if(name == "universe")
-	{
 		return LibraryID::UNIVERSE;
-	}
 	else if(name == "nano_vg")
-	{
 		return LibraryID::NANO_VG;
-	}
 	else if(name == "gui")
-	{
 		return LibraryID::GUI;
-	}
 	else if(name == "imgui")
-	{
 		return LibraryID::IMGUI;
-	}
 	else if(name == "scene")
-	{
 		return LibraryID::SCENE;
-	}
 	else if(name == "renderer")
-	{
 		return LibraryID::RENDERER;
-	}
 	else if(name == "model")
-	{
 		return LibraryID::MODEL;
-	}
 	else if(name == "input")
-	{
 		return LibraryID::INPUT;
-	}
 	else if(name == "orbit")
-	{
 		return LibraryID::ORBIT;
-	}
 	else if(name == "events")
-	{
 		return LibraryID::EVENTS;
-	}
+#ifdef HOLMGARD_PLUGINS
+	HOLMGARD_PLUGINS(HOLMGARD_MAKE_REQUIRE)
+#endif
 	else
-	{
 		return LibraryID::UNKNOWN;
-	}
 }
 
 void LuaCore::load_library(sol::table& table, LibraryID id)
@@ -274,6 +241,9 @@ LuaCore::LuaCore()
 	libraries[LibraryID::INPUT] = new LuaInput();
 	libraries[LibraryID::ORBIT] = new LuaOrbit();
 	libraries[LibraryID::EVENTS] = new LuaEvents();
+#ifdef HOLMGARD_PLUGINS
+	HOLMGARD_PLUGINS(HOLMGARD_MAKE_INIT)
+#endif
 }
 
 LuaCore::~LuaCore()
