@@ -43,6 +43,7 @@ public:
 	bool allow_update;
 	void update();
 	void update_cam(double dt);
+	void clear();
 
 	GameStateDebug(GameState* gamestate);
 };

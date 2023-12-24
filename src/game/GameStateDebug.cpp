@@ -235,4 +235,10 @@ void GameStateDebug::do_renderer()
 	}
 }
 
+void GameStateDebug::clear()
+{
+	shown_objects.clear();
+	centered_camera = nullptr;
+}
+
 

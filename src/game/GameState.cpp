@@ -245,6 +245,7 @@ void GameState::load_scene_from_save(cpptoml::table& scene_toml)
 
 GameState::~GameState()
 {
+	debug.clear();
 	if(scene != nullptr)
 	{
 		scene->unload();
