@@ -337,10 +337,11 @@ PlanetRenderer::PlanetRenderer()
 	generate_and_upload_index_buffer();
 	shader = hgr->assets->get<Shader>("core", "shaders/planet/tile.vs");
 	water_shader = hgr->assets->get<Shader>("core", "shaders/planet/water.vs");
-	cliff_tex = AssetHandle<Image>("debug_system:planets/earth/textures/cliff.png");
-	top_tex = AssetHandle<Image>("debug_system:planets/earth/textures/grass.png");
-	cliff_nrm = AssetHandle<Image>("debug_system:planets/earth/textures/cliff_nrm.png");
-	top_nrm= AssetHandle<Image>("debug_system:planets/earth/textures/grass_nrm.png");
+	// TODO: Proper texturing by tiles
+	cliff_tex = AssetHandle<Image>("core:notex.png");
+	top_tex = AssetHandle<Image>("core:notex.png");
+	cliff_nrm = AssetHandle<Image>("core:notex.png");
+	top_nrm = AssetHandle<Image>("core:notex.png");
 }
 
 

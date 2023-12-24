@@ -37,7 +37,7 @@
 [renderer.quality.atmosphere]
 	iterations = 3
 	sub_iterations = 2
-	low_end = false
+	low_end = true
 
 [renderer.quality.planet]
 	use_detail_map = true

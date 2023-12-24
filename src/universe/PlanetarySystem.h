@@ -28,10 +28,10 @@ private:
 	PosVector physics_pos;
 
 	static void render_body(CartesianState state, SystemElement* body, glm::dvec3 camera_pos, double t, double t0,
-		glm::dmat4 proj_view, float far_plane, glm::dvec3 sun_pos);
+		glm::dmat4 proj_view, float far_plane, glm::dvec3 light_dir);
 
 	static void render_body_atmosphere(CartesianState state, SystemElement* body, glm::dvec3 camera_pos,
-		glm::dmat4 proj_view, float far_plane, glm::dvec3 sun_pos);
+		glm::dmat4 proj_view, float far_plane, glm::dvec3 light_dir);
 
 	static void update_render_body_rocky(SystemElement* body, glm::dvec3 body_pos, glm::dvec3 camera_pos, double t, double t0);
 
@@ -44,6 +44,8 @@ private:
 	// (and wouldn't even change a measurable quantity)
 	glm::dvec3 interp_pos(size_t elem_id);
 	void interp_pos(CartesianState& st);
+	bool physics_init;
+
 public:
 
 	// Used to prevent predictors from getting garbage data
@@ -61,7 +63,10 @@ public:
 	size_t nbody_count;
 
 	// Which element is the star, used as a light source?
-	size_t star;
+	// (-1 if no star, then Renderer::star_pos is used)
+	int star;
+
+	glm::dvec3 get_sun_pos();
 
 	// Safer than directly indexing the array
 	size_t get_element_index_from_name(const std::string& name);
@@ -96,6 +101,7 @@ public:
 	void update_render(glm::dvec3 camera_pos, float fov);
 
 	// Does the heavy loading of [[element]] objects
+	// Make sure to push into asset manager the packet used!
 	void load(const cpptoml::table& root);
 
 	StateVector* get_massful_states() override

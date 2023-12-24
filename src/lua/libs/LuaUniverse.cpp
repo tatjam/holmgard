@@ -36,6 +36,7 @@ void LuaUniverse::load_to(sol::table& table)
 	        "get_element_position", &PlanetarySystem::get_element_position,
 			"get_element_velocity", &PlanetarySystem::get_element_velocity,
 			"get_element", &PlanetarySystem::get_element,
+			"load", &PlanetarySystem::load,
 			"elements", &PlanetarySystem::elements
 	);
 

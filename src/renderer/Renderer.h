@@ -109,6 +109,10 @@ private:
 
 public:
 
+	// If no physical star exists, this position is used as a light
+	// source for planets
+	glm::dvec3 star_pos;
+
 	// This is a light but used only internally for debug
 	DebugGBuffer debug_gbuffer;
 

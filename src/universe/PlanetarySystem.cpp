@@ -4,6 +4,7 @@
 #include "../physics/glm/BulletGlmCompat.h"
 #include "../physics/ground/GroundShape.h"
 #include <game/GameState.h>
+#include "renderer/Renderer.h"
 
 glm::dvec3 PlanetarySystem::get_gravity_vector(glm::dvec3 p, bool physics)
 {
@@ -30,14 +31,13 @@ glm::dvec3 PlanetarySystem::get_gravity_vector(glm::dvec3 p, bool physics)
 }
 
 void PlanetarySystem::render_body(CartesianState state, SystemElement* body, glm::dvec3 camera_pos, double t, double t0,
-	glm::dmat4 proj_view, float far_plane, glm::dvec3 sun_pos)
+	glm::dmat4 proj_view, float far_plane, glm::dvec3 light_dir)
 {
 
 	if(body->render_enabled == false)
 		return;
 
 	glm::dvec3 camera_pos_relative = camera_pos - state.pos;
-	glm::dvec3 light_dir = glm::normalize(state.pos - sun_pos);
 
 	glm::dmat4 model = glm::translate(glm::dmat4(1.0), -camera_pos + state.pos);
 	model = glm::scale(model, glm::dvec3(body->config.radius));
@@ -69,10 +69,9 @@ void PlanetarySystem::render_body(CartesianState state, SystemElement* body, glm
 }
 
 void PlanetarySystem::render_body_atmosphere(CartesianState state, SystemElement * body, glm::dvec3 camera_pos,
-											 glm::dmat4 proj_view, float far_plane, glm::dvec3 sun_pos)
+											 glm::dmat4 proj_view, float far_plane, glm::dvec3 light_dir)
 {
 	glm::dvec3 camera_pos_relative = camera_pos - state.pos;
-	glm::dvec3 light_dir = glm::normalize(state.pos - sun_pos);
 
 	body->renderer.forward(proj_view, camera_pos_relative, body->config, far_plane, light_dir);
 }
@@ -99,10 +98,11 @@ void PlanetarySystem::deferred_pass(CameraUniforms& cu, bool is_env_map)
 	glm::dmat4 c_model = cu.c_model;
 	float far_plane = cu.far_plane;
 
-	glm::dvec3 sun_pos = states_now[star].pos;
+	glm::dvec3 sun_pos = get_sun_pos();
 	for (size_t i = 0; i < elements.size(); i++)
 	{
-		render_body(states_now[i], elements[i], camera_pos, t, t0, proj_view, far_plane, sun_pos);
+		glm::dvec3 light_dir = glm::normalize(states_now[i].pos - sun_pos);
+		render_body(states_now[i], elements[i], camera_pos, t, t0, proj_view, far_plane, light_dir);
 	}
 
 	if (debug_drawer->debug_enabled)
@@ -140,11 +140,12 @@ void PlanetarySystem::forward_pass(CameraUniforms& cu, bool is_env_map)
 		return glm::distance2(camera_pos, a.second.pos) > glm::distance2(camera_pos, b.second.pos);
 	});
 
-	glm::dvec3 sun_pos = states_now[star].pos;
+	glm::dvec3 sun_pos = get_sun_pos();
 
 	for (size_t i = 0; i < sorted.size(); i++)
 	{
-		render_body_atmosphere(sorted[i].second, sorted[i].first, camera_pos, proj_view, far_plane, sun_pos);
+		glm::dvec3 light_dir = glm::normalize(states_now[i].pos - sun_pos);
+		render_body_atmosphere(sorted[i].second, sorted[i].first, camera_pos, proj_view, far_plane, light_dir);
 	}
 }
 
@@ -204,6 +205,7 @@ void PlanetarySystem::init_physics(btDynamicsWorld* world)
 		}
 	}
 
+	physics_init = true;
 
 }
 
@@ -212,28 +214,17 @@ size_t PlanetarySystem::get_element_index_from_name(const std::string& name)
 	auto it = name_to_index.find(name);
 	// TODO: Maybe make this not important?
 	logger->check(it != name_to_index.end(), "Tried to access by name ({}) a element which does not exist", name);
-	
+
 	return it->second;
 }
 
 
 void PlanetarySystem::update(double dt, btDynamicsWorld* world, bool bullet)
 {
-	// TODO: This could be moved to load?
-	if (states_now.empty())
+	if (!physics_init)
 	{
-		states_now.resize(elements.size());
-		// Load the initial positions and speeds
-		for(size_t i = 0; i < elements.size(); i++)
-		{
-			states_now[i].pos = elements[i]->position_at_epoch;
-			states_now[i].vel = elements[i]->velocity_at_epoch;
-			states_now[i].mass = elements[i]->get_mass();
-		}
-
 		init_physics(world);
 	}
-
 	update_physics(dt, bullet);
 
 }
@@ -241,7 +232,6 @@ void PlanetarySystem::update(double dt, btDynamicsWorld* world, bool bullet)
 void PlanetarySystem::init(btDynamicsWorld* world)
 {
 	propagator->bind_to(this);
-
 }
 
 static void load_body(SystemElement* body)
@@ -298,12 +288,12 @@ void PlanetarySystem::update_render_body_rocky(SystemElement* body, glm::dvec3 b
 		rel_matrix = glm::translate(rel_matrix, -body_pos);
 
 		glm::dvec3 rel_camera_pos = rel_matrix * glm::dvec4(camera_pos, 1.0);
-	
+
 
 
 		glm::vec3 pos_nrm = (glm::vec3)glm::normalize(rel_camera_pos);
 		PlanetSide side = body->renderer.rocky->qtree.get_planet_side(pos_nrm);
-		glm::dvec2 offset = body->renderer.rocky->qtree.get_planet_side_offset(pos_nrm, side); 
+		glm::dvec2 offset = body->renderer.rocky->qtree.get_planet_side_offset(pos_nrm, side);
 
 		double altitude = body->renderer.rocky->server->get_height(pos_nrm, 1);
 
@@ -352,7 +342,7 @@ void PlanetarySystem::update_render(glm::dvec3 camera_pos, float fov)
 
 	for (size_t i = 0; i < elements.size(); i++)
 	{
-		
+
 		// Set unloaded
 		float prev_factor = elements[i]->dot_factor;
 		elements[i]->dot_factor = elements[i]->get_dot_factor((float)glm::distance(camera_pos, states_now[i].pos), fov);
@@ -391,9 +381,9 @@ PlanetarySystem::PlanetarySystem(Universe* universe)
 
 PlanetarySystem::~PlanetarySystem()
 {
-	delete propagator;
+delete propagator;
 
-	// Remove physics stuff
+// Remove physics stuff
 	
 	for(auto elem : elements)
 	{
@@ -411,9 +401,10 @@ void PlanetarySystem::load(const cpptoml::table &root)
 {
 	t0 = root.get_qualified_as<double>("t").value_or(0);
 	bt = 0; t = 0;
+	star = -1;
 
 	auto toml_elements = root.get_table_array("element");
-	if(!toml_elements) return;
+	logger->check(toml_elements != nullptr, "No elements found on system!");
 
 	// Load all the elements first
 	nbody_count = 0;
@@ -468,8 +459,19 @@ void PlanetarySystem::load(const cpptoml::table &root)
 		}
 	}
 
-	logger->check(found_star, "No star found, make sure the system has one");
+	if(!found_star)
+	{
+		logger->warn("No star found, make sure you set renderer.star_pos for planet lightning");
+	}
 
+	states_now.resize(elements.size());
+	// Load the initial positions and speeds
+	for(size_t i = 0; i < elements.size(); i++)
+	{
+		states_now[i].pos = elements[i]->position_at_epoch;
+		states_now[i].vel = elements[i]->velocity_at_epoch;
+		states_now[i].mass = elements[i]->get_mass();
+	}
 }
 
 SystemElement* PlanetarySystem::get_element(const std::string &name)
@@ -523,6 +525,21 @@ void PlanetarySystem::interp_pos(CartesianState &st)
 {
 	double tdiff = t - bt;
 	st.pos = st.pos - st.vel * tdiff;
+}
+
+glm::dvec3 PlanetarySystem::get_sun_pos()
+{
+	// If no star is given, we use the set sun position in renderer
+	glm::dvec3 sun_pos = states_now[star].pos;
+	if(star < 0)
+	{
+		sun_pos = hgr->renderer->star_pos;
+	}
+	else
+	{
+		sun_pos = states_now[star].pos;
+	}
+	return sun_pos;
 }
 
 

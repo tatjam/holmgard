@@ -6,6 +6,8 @@
 
 // We include some read_to_x functions
 #include "util/SerializeUtil.h"
+#include "Holmgard.h"
+#include "assets/AssetManager.h"
 
 void LuaToml::load_to(sol::table& table)
 {

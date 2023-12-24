@@ -42,6 +42,7 @@ void LuaRenderer::load_to(sol::table& table)
 				rnd->render(&hgr->game_state->universe.system);
 			 },
 		  "quality", &Renderer::quality,
+		  "star_pos", &Renderer::star_pos,
 		  "env_sample_pos", &Renderer::env_sample_pos,
 		  "override_viewport", &Renderer::override_viewport,
 		  "disable_env_sampling", [](Renderer* rnd)

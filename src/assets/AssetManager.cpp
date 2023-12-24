@@ -54,6 +54,10 @@ std::string AssetManager::load_string(const std::string& full_path, const std::s
 std::string AssetManager::load_string_raw(const std::string& path)
 {
 	std::ifstream t(path);
+	if(!t.good())
+	{
+		logger->warn("Unable to open file: {}. Returning empty string.", path);
+	}
 	std::string str((std::istreambuf_iterator<char>(t)),
 		std::istreambuf_iterator<char>());
 	return str;
@@ -171,7 +175,7 @@ void AssetManager::preload()
 			packages[sstr] = Package();
 			packages[sstr].was_init = false;
 			packages[sstr].metadata = pkg_meta;
-			packages[sstr].path_prefix = as_str;
+			packages[sstr].path_prefix = as_str + "/";
 		}
 	}
 

@@ -60,6 +60,7 @@ void LuaAssets::load_to(sol::table& table)
 			auto table = env["__pkg_stack"].get<sol::table>();
 			// Push into the stack
 			table[table.size()] = env["__pkg"];
+			hgr->assets->set_current_package(cfg->get_asset_pkg());
 			env["__pkg"] = cfg->get_asset_pkg();
 	    },
 		"restore_pkg", [](Config* cfg, sol::this_environment tenv)
@@ -68,6 +69,10 @@ void LuaAssets::load_to(sol::table& table)
 			auto table = env["__pkg_stack"].get<sol::table>();
 			// Pop from the table
 			env["__pkg"] = table[table.size()];
+			// TODO: For real solid implementation of this, every time an script is passed
+			// TODO: control this should be called. Not really needed as all core resources
+			// TODO: are obtained with core: prefix
+			hgr->assets->set_current_package(table[table.size()]);
 			table[table.size()] = sol::nil;
 		});
 
