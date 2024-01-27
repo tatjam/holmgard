@@ -140,6 +140,7 @@ PlanetTileServer::PlanetTileServer(const std::string& script, const std::string&
 	has_errors = false;
 	threads_run = true;
 	depth_for_unload = 0;
+	dirty = false;
 
 	bool wrote_error = false;
 

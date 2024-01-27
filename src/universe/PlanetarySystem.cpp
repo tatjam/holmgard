@@ -530,7 +530,7 @@ void PlanetarySystem::interp_pos(CartesianState &st)
 glm::dvec3 PlanetarySystem::get_sun_pos()
 {
 	// If no star is given, we use the set sun position in renderer
-	glm::dvec3 sun_pos = states_now[star].pos;
+	glm::dvec3 sun_pos;
 	if(star < 0)
 	{
 		sun_pos = hgr->renderer->star_pos;

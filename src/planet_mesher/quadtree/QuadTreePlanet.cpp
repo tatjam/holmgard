@@ -283,6 +283,7 @@ QuadTreeNode* QuadTreePlanet::subdivide_to(glm::dvec2 offset, PlanetSide side, s
 QuadTreePlanet::QuadTreePlanet()
 {
 	iteration = 0;
+	old_render_leafs_it = std::numeric_limits<uint64_t>::max();
 
 	for (size_t i = 0; i < 6; i++)
 	{
