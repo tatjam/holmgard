@@ -9,7 +9,7 @@ bool AudioSource::mix_samples(void* target, size_t count)
 		return false;
 	}
 
-	played_once = true;
+	audio_played = true;
 
 	size_t sample_rate = engine->get_sample_rate() * pitch;
 
@@ -21,12 +21,20 @@ bool AudioSource::mix_samples(void* target, size_t count)
 	else
 	{
 		// Audio playback is finished
-		playing = false;
-		cur_sample = 0;
-
-		if(destroy_when_finished)
+		if(loops)
 		{
-			destroy_from_thread();
+			cur_sample = 0;
+		}
+		else
+		{
+			playing = false;
+			cur_sample = 0;
+			audio_played = false;
+
+			if(destroy_when_finished)
+			{
+				destroy_from_thread();
+			}
 		}
 	}
 
@@ -58,8 +66,8 @@ AudioSource::AudioSource(AudioEngine *eng, uint32_t channel)
 	audio_clip_src = AssetHandle<AudioClip>();
 	generic_src = nullptr;
 	loops = false;
-	played_once = false;
 	marked_for_deletion = false;
+	audio_played = false;
 
 	cur_sample = 0;
 	destroy_when_finished = false;
@@ -69,6 +77,7 @@ void AudioSource::set_playing(bool value)
 {
 	engine->mtx.lock();
 	playing = value;
+	if(!value) audio_played = false;
 	engine->mtx.unlock();
 }
 

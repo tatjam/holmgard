@@ -36,6 +36,8 @@ struct LuaAudioHandler
 	{ WRAP l->set_playing(value); }
 	bool is_playing() const
 	{ WRAP return l->is_playing(); else return false;}
+	bool is_playing_or_queued() const
+	{ WRAP return l->is_playing_or_queued(); else return false;}
 	bool is_3d_source() const
 	{ WRAP return l->is_3d_source(); else return false;}
 	void set_3d_source(bool value) const

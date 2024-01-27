@@ -33,7 +33,7 @@ private:
 	glm::dvec3 pos, vel;
 
 	bool destroy_when_finished = false;
-	bool played_once = false;
+	bool audio_played;
 
 public:
 	bool marked_for_deletion;
@@ -41,7 +41,11 @@ public:
 	void set_destroy_when_finished(){ destroy_when_finished = true; }
 
 	void set_playing(bool value);
-	bool is_playing() const {return playing;}
+	// Returns true if the audio is actually generating sound
+	bool is_playing() const { return audio_played; }
+	// Returns true if the audio is playing, or waiting to play (if for
+	// example no source is set, but set_playing(true) has been called)
+	bool is_playing_or_queued() const { return playing; }
 
 	// Return true if anything was played
 	bool mix_samples(void* target, size_t count);
