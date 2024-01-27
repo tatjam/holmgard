@@ -188,40 +188,50 @@ void AudioEngine::data_callback(ma_device* device, void* output, const void* inp
 
 		bool any = false;
 		bool first = true;
-		for(const auto& source : ch->sources)
+		for(auto it = ch->sources.begin(); it != ch->sources.end(); )
 		{
-			float attenuation = 1.0f, left = 1.0f, right = 1.0f;
-			if(source->is_3d_source())
+			auto source = (*it);
+			if(source->marked_for_deletion)
 			{
-				auto[nleft, nright] = engine->get_panning(source->get_position());
-				left = nleft; right = nright;
-				float distance = (float)glm::distance(source->get_position(), engine->listener_pos);
+				it = ch->sources.erase(it);
 			}
-
-			// Source will NOT apply their own gain
-			bool written = source->mix_samples(fmix, frames);
-			any |= written;
-
-			// Apply directionality and attenuation, mixing into the channel
-			if(written)
+			else
 			{
-				float lgain = left * attenuation * source->get_gain();
-				float rgain = right * attenuation * source->get_gain();
-				for (ma_uint32 i = 0; i < frames; i++)
+				float attenuation = 1.0f, left = 1.0f, right = 1.0f;
+				if (source->is_3d_source())
 				{
-					if(first)
-					{
-						// We must overwrite fmixch as it contains data from previous channels / audio requests
-						fmixch[i * 2 + 0] = fmix[i * 2 + 0] * lgain;
-						fmixch[i * 2 + 1] = fmix[i * 2 + 1] * rgain;
-					}
-					else
-					{
-						fmixch[i * 2 + 0] += fmix[i * 2 + 0] * lgain;
-						fmixch[i * 2 + 1] += fmix[i * 2 + 1] * rgain;
-					}
+					auto [nleft, nright] = engine->get_panning(source->get_position());
+					left = nleft;
+					right = nright;
+					float distance = (float) glm::distance(source->get_position(), engine->listener_pos);
 				}
-				first = false;
+
+				// Source will NOT apply their own gain
+				bool written = source->mix_samples(fmix, frames);
+				any |= written;
+
+				// Apply directionality and attenuation, mixing into the channel
+				if (written)
+				{
+					float lgain = left * attenuation * source->get_gain();
+					float rgain = right * attenuation * source->get_gain();
+					for (ma_uint32 i = 0; i < frames; i++)
+					{
+						if (first)
+						{
+							// We must overwrite fmixch as it contains data from previous channels / audio requests
+							fmixch[i * 2 + 0] = fmix[i * 2 + 0] * lgain;
+							fmixch[i * 2 + 1] = fmix[i * 2 + 1] * rgain;
+						}
+						else
+						{
+							fmixch[i * 2 + 0] += fmix[i * 2 + 0] * lgain;
+							fmixch[i * 2 + 1] += fmix[i * 2 + 1] * rgain;
+						}
+					}
+					first = false;
+				}
+				it++;
 			}
 
 		}

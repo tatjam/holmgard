@@ -5,8 +5,11 @@ bool AudioSource::mix_samples(void* target, size_t count)
 {
 	if(!sample_source || !playing || pitch <= 0.0f)
 	{
+		// this effectively waits for an audio source to be added
 		return false;
 	}
+
+	played_once = true;
 
 	size_t sample_rate = engine->get_sample_rate() * pitch;
 
@@ -20,14 +23,26 @@ bool AudioSource::mix_samples(void* target, size_t count)
 		// Audio playback is finished
 		playing = false;
 		cur_sample = 0;
+
+		if(destroy_when_finished)
+		{
+			destroy_from_thread();
+		}
 	}
 
 	return true;
 }
 
+void AudioSource::destroy_from_thread()
+{
+	marked_for_deletion = true;
+}
+
 void AudioSource::destroy()
 {
 	engine->mtx.lock();
+	destroy_from_thread();
+	engine->mtx.unlock();
 }
 
 AudioSource::AudioSource(AudioEngine *eng, uint32_t channel)
@@ -40,7 +55,14 @@ AudioSource::AudioSource(AudioEngine *eng, uint32_t channel)
 	gain = 1.0f;
 	pitch = 1.0f;
 	sample_source = nullptr;
+	audio_clip_src = AssetHandle<AudioClip>();
+	generic_src = nullptr;
 	loops = false;
+	played_once = false;
+	marked_for_deletion = false;
+
+	cur_sample = 0;
+	destroy_when_finished = false;
 }
 
 void AudioSource::set_playing(bool value)
@@ -99,6 +121,7 @@ void AudioSource::set_looping(bool val)
 void AudioSource::set_source_generic(std::unique_ptr<SampleSource>& src)
 {
 	sample_source = src.get();
-	sample_source = nullptr;
+	audio_clip_src = AssetHandle<AudioClip>();
 	generic_src = std::move(src);
 }
+

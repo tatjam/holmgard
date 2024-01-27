@@ -33,8 +33,10 @@ private:
 	glm::dvec3 pos, vel;
 
 	bool destroy_when_finished = false;
+	bool played_once = false;
 
 public:
+	bool marked_for_deletion;
 
 	void set_destroy_when_finished(){ destroy_when_finished = true; }
 
@@ -67,6 +69,7 @@ public:
 
 	// Be aware, all other pointers to this will be invalidated
 	void destroy();
+	void destroy_from_thread();
 	AudioSource(AudioEngine* eng, uint32_t channel);
 };
 

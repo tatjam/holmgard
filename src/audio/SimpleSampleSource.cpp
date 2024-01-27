@@ -25,7 +25,7 @@ SimpleSampleSource::mix_samples(float *target, uint32_t count, uint32_t cur_fram
 				target[i * 2 + 1] = fsamples[frm_ptr * 2 + 1];
 			}
 			frm_ptr++;
-			if(frm_ptr >= frame_count / 2)
+			if(frm_ptr >= frame_count)
 			{
 				if(loop)
 				{
@@ -50,7 +50,7 @@ SimpleSampleSource::mix_samples(float *target, uint32_t count, uint32_t cur_fram
 	else
 	{
 		logger->fatal("Real-time resampling is not supported");
-		return 0;
+		return -1;
 	}
 
 }
