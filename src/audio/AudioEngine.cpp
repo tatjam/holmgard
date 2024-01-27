@@ -20,13 +20,13 @@ AudioEngine::AudioEngine(const cpptoml::table &settings)
 	{
 		channels[i].use_hdr = i != 0;
 		channels[i].gain = 1.0f;
-		std::string ch = "audio_engine.channel_";
+		std::string ch = "audio.channel_";
 		ch += std::to_string(i);
 		channels[i].external_gain = settings.get_qualified_as<double>(ch + "_ext_gain").value_or(1.0f);
 		channels[i].internal_gain = settings.get_qualified_as<double>(ch + "_int_gain").value_or(1.0f);
 	}
-	master_gain = settings.get_qualified_as<double>("audio_engine.gain").value_or(1.0f);
-	simple_panning = settings.get_qualified_as<bool>("audio_engine.simple_panning").value_or(false);
+	master_gain = settings.get_qualified_as<double>("audio.gain").value_or(1.0f);
+	simple_panning = settings.get_qualified_as<bool>("audio.simple_panning").value_or(false);
 
 	// We retrieve all devices to allow configuration to use the device by string. We store this for
 	// the settings interface
@@ -37,7 +37,7 @@ AudioEngine::AudioEngine(const cpptoml::table &settings)
 
 	logger->info("Audio device enumeration:");
 	ma_int32 chosen_i = -1;
-	std::string wanted_device = settings.get_qualified_as<std::string>("audio_engine.device").value_or("");
+	std::string wanted_device = settings.get_qualified_as<std::string>("audio.device").value_or("");
 	for(ma_uint32 i = 0; i < playback_count; i++)
 	{
 		audio_devices.emplace_back((char*)&infos[i].name[0]);

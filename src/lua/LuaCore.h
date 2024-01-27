@@ -54,6 +54,7 @@ public:
 		INPUT,			// LuaInput
 		ORBIT,			// LuaOrbit
 		EVENTS,			// LuaEvents
+		AUDIO,			// LuaAudio
 #ifdef HOLMGARD_PLUGINS
 		HOLMGARD_PLUGINS(HOLMGARD_MAKE_ENUM)
 #endif

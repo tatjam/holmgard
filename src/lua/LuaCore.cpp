@@ -18,6 +18,7 @@
 #include "libs/LuaInput.h"
 #include "libs/LuaOrbit.h"
 #include "libs/LuaEvents.h"
+#include "libs/LuaAudio.h"
 
 // Used for setting up "hgr" usertype
 #include "renderer/Renderer.h"
@@ -120,6 +121,8 @@ LuaCore::LibraryID LuaCore::name_to_id(const std::string & name)
 		return LibraryID::ORBIT;
 	else if(name == "events")
 		return LibraryID::EVENTS;
+	else if(name == "audio")
+		return LibraryID::AUDIO;
 #ifdef HOLMGARD_PLUGINS
 	HOLMGARD_PLUGINS(HOLMGARD_MAKE_REQUIRE)
 #endif
@@ -150,7 +153,7 @@ void LuaCore::load(sol::state& to, const std::string& pkg)
 	// so that all subsystems can be accessed without having many globals
 	to.new_usertype<Holmgard>("__ut_hgr", sol::no_constructor,
 							  "renderer", &Holmgard::renderer,
-							  "audio_engine", &Holmgard::audio_engine,
+							  "audio", &Holmgard::audio,
 							  "universe", &Holmgard::universe,
 							  "game_dt", sol::readonly(&Holmgard::game_dt));
 
@@ -241,6 +244,7 @@ LuaCore::LuaCore()
 	libraries[LibraryID::INPUT] = new LuaInput();
 	libraries[LibraryID::ORBIT] = new LuaOrbit();
 	libraries[LibraryID::EVENTS] = new LuaEvents();
+	libraries[LibraryID::AUDIO] = new LuaAudio();
 #ifdef HOLMGARD_PLUGINS
 	HOLMGARD_PLUGINS(HOLMGARD_MAKE_INIT)
 #endif

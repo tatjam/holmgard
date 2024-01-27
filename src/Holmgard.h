@@ -37,7 +37,7 @@ public:
 
 	AssetManager* assets{};
 	Renderer* renderer{};
-	AudioEngine* audio_engine{};
+	AudioEngine* audio{};
 	GameState* game_state{};
 	GameDatabase* game_database{};
 	Universe* universe;

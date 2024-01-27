@@ -11,8 +11,9 @@ class AudioSource
 {
 private:
 
-	// Asset references, we actually use the sample_source pointer
+	// Asset references if using an AudioClip, we actually use the sample_source pointer
 	AssetHandle<AudioClip> audio_clip_src;
+	std::unique_ptr<SampleSource> generic_src;
 
 	SampleSource* sample_source;
 
@@ -31,8 +32,11 @@ private:
 
 	glm::dvec3 pos, vel;
 
+	bool destroy_when_finished = false;
+
 public:
 
+	void set_destroy_when_finished(){ destroy_when_finished = true; }
 
 	void set_playing(bool value);
 	bool is_playing() const {return playing;}
@@ -58,6 +62,8 @@ public:
 
 	// We duplicate the asset
 	void set_source_clip(const AssetHandle<AudioClip>& ast);
+	// Moves the sample source
+	void set_source_generic(std::unique_ptr<SampleSource>& src);
 
 	// Be aware, all other pointers to this will be invalidated
 	void destroy();

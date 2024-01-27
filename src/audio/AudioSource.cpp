@@ -85,6 +85,7 @@ void AudioSource::set_source_clip(const AssetHandle<AudioClip>& ast)
 	// We can now safely store a pointer
 	engine->mtx.lock();
 	sample_source = ast.data;
+	generic_src = nullptr;
 	engine->mtx.unlock();
 }
 
@@ -93,4 +94,11 @@ void AudioSource::set_looping(bool val)
 	engine->mtx.lock();
 	loops = val;
 	engine->mtx.unlock();
+}
+
+void AudioSource::set_source_generic(std::unique_ptr<SampleSource>& src)
+{
+	sample_source = src.get();
+	sample_source = nullptr;
+	generic_src = std::move(src);
 }

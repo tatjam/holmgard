@@ -8,7 +8,7 @@
 	type = "windowed"	# "windowed", "fullscreen" or "windowed fullscreen"
 	swap_interval = 0 # 0 = no vsync 1 = vsync
 
-[audio_engine]
+[audio]
 	channel_0_int_gain = 1.0
 	channel_0_ext_gain = 1.0
 

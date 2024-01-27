@@ -182,7 +182,7 @@ void Holmgard::init(int argc, char** argv)
 
 		assets = new AssetManager(res_path, udata_path);
 		renderer = new Renderer(*config);
-		audio_engine = new AudioEngine(*config);
+		audio = new AudioEngine(*config);
 		create_global_debug_drawer();
 		create_global_texture_drawer();
 		create_global_text_drawer();
@@ -207,7 +207,7 @@ void Holmgard::finish()
 	destroy_global_texture_drawer();
 	destroy_global_debug_drawer();
 	delete renderer;
-	delete audio_engine;
+	delete audio;
 	delete assets;
 	destroy_global_logger();
 }
