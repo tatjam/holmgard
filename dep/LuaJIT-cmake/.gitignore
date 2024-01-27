@@ -11,4 +11,5 @@
 .tags
 .idea/
 build/
-cmake-*-build/
+cmake-debug-build/
+cmake-release-build/
