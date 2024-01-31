@@ -117,10 +117,6 @@ struct Node
 		const MaterialOverride* mat_over, bool ignore_our_subtform, bool increase_did = false) const;
 };
 
-// Models allow loading 3d models using the assimp library
-// For now we support (and have tested):
-// - .fbx (Easy to export from blender, make sure custom-properties are enabled for collision to work!)
-// It supports a full hierarchy of meshes, each with a subtransform.
 // An empty mesh is a node, it contains only a transform
 class Model : public Asset
 {
@@ -144,7 +140,7 @@ private:
 public:
 	Node* root;
 
-	// Here lives all the data which needs to be upluaded to the GPU
+	// Here lives all the data which needs to be uploaded to the GPU
 	tinygltf::Model gltf;
 
 	static constexpr const char* COLLIDER_PREFIX = "col_";
@@ -155,6 +151,8 @@ public:
 	void get_gpu();
 	void free_gpu();
 
+	// For creating from code
+	Model(ASSET_INFO);
 	Model(tinygltf::Model&& model, ASSET_INFO);
 	~Model();
 };
@@ -224,12 +222,12 @@ public:
 	// We can safely handle model.data directly, allowing const for convenience
 	const Model* operator->() const
 	{
-		return model.data;
+		return model.get();
 	}
 
 	const Model& operator*() const
 	{
-		return *model.data;
+		return *model.get();
 	}
 
 };

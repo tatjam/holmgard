@@ -152,7 +152,7 @@ struct ModelTexture
 	{
 		if(is_asset)
 		{
-			return second.data;
+			return second.get_noconst();
 		}
 		else
 		{

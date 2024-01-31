@@ -65,12 +65,12 @@ int LoadFileRequire(lua_State* L)
 	}
 	else
 	{
-		// WARNING FOR MODDERS: require creates only one instance, use for libraries!
+		// WARNING FOR MODDERS: require creates only one instance!
 		auto name = hgr->assets->get_filename(path);
-		// Enforce local / class files, which may not be "required"
-		if(name.rfind("l_", 0) == 0 || name.rfind("c_", 0) == 0)
+		// Enforce local files, which may not be "required"
+		if(name.rfind("l_", 0) == 0)
 		{
-			logger->fatal("Tried to require {}, which is meant to be included with dofile / loadfile", path);
+			logger->fatal("Tried to require {}, which is meant to be included with dofile", path);
 		}
 
 		std::string spath = hgr->assets->resolve_path(path, sview["__pkg"]);
@@ -171,8 +171,8 @@ void LuaCore::load(sol::table& to, const std::string& pkg)
 		sol::environment env = te;
 		sol::state_view sv = ts;
 		auto name = hgr->assets->get_filename(path);
-		// Enforce global files, which may not be "dofiled"
-		if(name.rfind("g_", 0) == 0)
+		// Enforce global and class files, which may not be "dofiled"
+		if(name.rfind("g_", 0) == 0 || name.rfind("c_", 0) == 0)
 		{
 			logger->fatal("Tried to dofile {}, which is meant to be included with require", path);
 		}

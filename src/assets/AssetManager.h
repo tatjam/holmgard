@@ -384,15 +384,22 @@ struct AssetPointer
 template<typename T>
 struct AssetHandle
 {
-	std::string pkg, name;
-	T* data;
-
 public:
+	std::shared_ptr<T> raw;
+	T* data;
+	std::string pkg, name;
 
 	T* get_noconst() const
 	{
 		logger->check(pkg != "" && name != "", "Tried to get a null asset handle");
-		return data;
+		if(raw)
+		{
+			return raw.get();
+		}
+		else
+		{
+			return data;
+		}
 	}
 
 	const T* get() const
@@ -402,18 +409,20 @@ public:
 
 	void unload()
 	{
-		if (data != nullptr)
+		if (data != nullptr && !raw)
 		{
 			hgr->assets->free<T>(pkg, name);
 			data = nullptr;
 		}
+
+		raw = nullptr;
 	}
 
 	AssetHandle(const std::string& pkg, const std::string& name)
 	{
 		this->pkg = pkg;
 		this->name = name;
-
+		raw = nullptr;
 		data = hgr->assets->get<T>(pkg, name);
 	}
 
@@ -429,6 +438,7 @@ public:
 		this->pkg = pkg;
 		this->name = name;
 
+		raw = nullptr;
 		data = hgr->assets->get<T>(pkg, name);
 	}
 
@@ -436,11 +446,20 @@ public:
 	{
 	}
 
+	AssetHandle(std::shared_ptr<T> mraw)
+	{
+		data = nullptr;
+		raw = mraw;
+		pkg = raw->get_asset_pkg();
+		name = raw->get_asset_name();
+	}
+
 	AssetHandle()
 	{
 		pkg = "null";
 		name = "null";
 		data = nullptr;
+		raw = nullptr;
 
 		// To satisfy std vectors, not really needed
 	}
@@ -451,10 +470,11 @@ public:
 		this->pkg = b.pkg;
 		this->name = b.name;
 		this->data = b.data;
+		this->raw = std::move(b.raw);
 
 		b.data = nullptr;
-		b.pkg = "null";
-		b.name = "null";
+		b.pkg = "";
+		b.name = "";
 	}
 
 	AssetHandle<T>& operator=(AssetHandle<T>&& other)
@@ -465,10 +485,11 @@ public:
 		this->pkg = other.pkg;
 		this->name = other.name;
 		this->data = other.data;
+		this->raw = std::move(other.raw);
 
 		other.data = nullptr;
-		other.pkg = "null";
-		other.name = "null";
+		other.pkg = "";
+		other.name = "";
 
 		return *this;
 	}
@@ -481,7 +502,15 @@ public:
 			return AssetHandle<T>();
 		}
 
-		return AssetHandle<T>(pkg, name);
+		if(raw)
+		{
+			return AssetHandle<T>(raw);
+		}
+		else
+		{
+			return AssetHandle<T>(pkg, name);
+		}
+
 	}
 
 	~AssetHandle()
@@ -491,7 +520,7 @@ public:
 
 	bool is_null()
 	{
-		return data == nullptr;
+		return data == nullptr && !raw;
 	}
 
 	const T* operator->() const

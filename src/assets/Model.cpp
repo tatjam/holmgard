@@ -389,10 +389,10 @@ void Mesh::bind_uniforms(const CameraUniforms& uniforms, glm::dmat4 model, GLint
 {
 	logger->check(drawable, "Cannot draw a non-drawable mesh!");
 
-	material.data->shader->use();
+	material->shader->use();
 
-	int gl_tex = material.data->set(textures, mat_override);
-	material.data->set_core(&gl_tex, uniforms, model, did);
+	int gl_tex = material->set(textures, mat_override);
+	material->set_core(&gl_tex, uniforms, model, did);
 }
 
 void Mesh::draw_command() const
@@ -493,6 +493,13 @@ Model::Model(tinygltf::Model&& model, ASSET_INFO) : Asset(ASSET_INFO_P)
 	}
 
 	root = scene_node;
+}
+
+Model::Model(ASSET_INFO) : Asset(ASSET_INFO_P)
+{
+	gpu_users = 0;
+	uploaded = false;
+
 }
 
 void Model::load_node(const tinygltf::Model &model, int node_idx, Node *parent, Model* rmodel, bool parent_draw)
@@ -887,7 +894,7 @@ void Node::draw_all_meshes_shadow(const ShadowCamera& sh_cam, glm::dmat4 model) 
 			glm::dmat4 tform = sh_cam.tform * model;
 
 			// We can safely use data here as materials are loaded as long as we are
-			Shader* sh = mesh.material.data->shadow_shader;
+			Shader* sh = mesh.material->shadow_shader;
 			sh->use();
 			sh->setMat4("tform", tform);
 
@@ -906,7 +913,7 @@ void Node::draw_all_meshes_override(const CameraUniforms& uniforms, const Materi
 			const Material* def = mat;
 			if(mat == nullptr)
 			{
-				mat = mesh.material.data;
+				mat = mesh.material.get();
 			}
 
 			mat->shader->use();

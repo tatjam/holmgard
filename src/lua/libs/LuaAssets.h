@@ -2,7 +2,7 @@
 #include "../LuaLib.h"
 #include <util/Logger.h>
 #include <assets/AssetManager.h>
-
+#include <assets/Asset.h>
 
 // Useful while development to make sure assets are working correctly
 // #define LUA_ASSET_DEBUG_ENABLED
@@ -36,7 +36,8 @@
 		don't store the return for long as the asset may be unloaded and you will
 		get garbage (or crash the program).
 
-		You cannot create your own asset handles, you must obtain them from get_x
+		You cannot create your own asset handles, you must obtain them from get_x, or from
+		asset generation routines on the appropriate lua file which exposes them
 
 		You can use asset:move() to invalidate a asset handle, returning a new valid one
 
@@ -50,8 +51,6 @@
 
 		When a resource takes a LuaAssetHandle, it should be duplicated, not moved as usual in C++ code
 		(This is because in lua you can simply do resource = nil, but there's no move semantics!)
-
- 	-> Furthermore, it allows reading / writing vehicle TOML files from udata
 
 */
 class LuaAssets : public LuaLib
@@ -84,15 +83,22 @@ struct LuaAssetHandle
 
 	T* data;
 	sol::usertype<T> ut;
+	std::shared_ptr<T> raw;
 
 	T* operator()()
 	{
-		return data;
+		if(raw)
+			return raw.get();
+		else
+			return data;
 	}
 
 	T* operator->()
 	{
-		return data;
+		if(raw)
+			return raw.get();
+		else
+			return data;
 	}
 
 	std::string get_asset_id()
@@ -102,12 +108,18 @@ struct LuaAssetHandle
 
 	T* get()
 	{
-		return data;
+		if(raw)
+			return raw.get();
+		else
+			return data;
 	}
 
 	explicit operator T()
 	{
-		return *data;
+		if(raw)
+			return *raw;
+		else
+			return *data;
 	}
 
 	// Invalidates this (makes it null) and returns a new valid handle
@@ -124,6 +136,8 @@ struct LuaAssetHandle
 	LuaAssetHandle(const AssetHandle<T>& from);
 	~LuaAssetHandle();
 
+	explicit LuaAssetHandle(std::shared_ptr<T> from);
+
 	bool operator==(const LuaAssetHandle<T>& other) const
 	{
 		return pkg == other.pkg && name == other.name;
@@ -131,13 +145,26 @@ struct LuaAssetHandle
 };
 
 template<typename T>
+LuaAssetHandle<T>::LuaAssetHandle(std::shared_ptr<T> from)
+{
+	this->raw = from;
+	this->data = nullptr;
+	this->pkg = from->get_asset_pkg();
+	this->name = from->get_asset_name();
+}
+
+template<typename T>
 LuaAssetHandle<T>::LuaAssetHandle(const AssetHandle<T>& from)
 {
 	pkg = from.pkg;
 	name = from.name;
 	data = from.data;
+	raw = from.raw;
 
-	hgr->assets->get<T>(pkg, name, true);
+	if(!raw)
+	{
+		hgr->assets->get<T>(pkg, name, true);
+	}
 
 #ifdef LUA_ASSET_DEBUG_ENABLED
 	logger->debug("Lua asset handle created (path={}:{}, pointer={}) by copy from asset handle", pkg, name, (void*)data);
@@ -156,10 +183,11 @@ LuaAssetHandle<T>::LuaAssetHandle(LuaAssetHandle<T>&& b)
 	pkg = b.pkg;
 	name = b.name;
 	data = b.data;
+	raw = std::move(b.raw);
 	ut = b.ut;
 
-	b.pkg = "null";
-	b.name = "null";
+	b.pkg = "";
+	b.name = "";
 	b.data = nullptr;
 	b.ut = sol::nil;
 
@@ -176,8 +204,12 @@ LuaAssetHandle<T>::LuaAssetHandle(const LuaAssetHandle<T>& p2)
 	name = p2.name;
 	data = p2.data;
 	ut = p2.ut;
+	raw = p2.raw;
 
-	hgr->assets->get<T>(pkg, name, true);
+	if(!raw)
+	{
+		hgr->assets->get<T>(pkg, name, true);
+	}
 
 #ifdef LUA_ASSET_DEBUG_ENABLED
 	logger->debug("Lua asset handle created (path={}:{}, pointer={}) by copy", pkg, name, (void*)data);
@@ -190,6 +222,7 @@ LuaAssetHandle<T>::LuaAssetHandle(const std::string& pkg, const std::string& nam
 	this->pkg = pkg;
 	this->name = name;
 	this->data = data;
+	this->raw = nullptr;
 
 #ifdef LUA_ASSET_DEBUG_ENABLED
 	logger->debug("Lua asset handle created (path={}:{}, pointer={})", pkg, name, (void*)data);

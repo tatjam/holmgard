@@ -115,7 +115,7 @@ void AudioSource::set_source_clip(const AssetHandle<AudioClip>& ast)
 	audio_clip_src = ast.duplicate();
 	// We can now safely store a pointer
 	engine->mtx.lock();
-	sample_source = ast.data;
+	sample_source = ast.get_noconst();
 	generic_src = nullptr;
 	engine->mtx.unlock();
 }

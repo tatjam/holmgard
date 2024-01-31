@@ -31,8 +31,7 @@ void LuaAudio::load_to(sol::table &table)
 		"set_pitch", &LuaAudioHandler::set_pitch,
 		"is_looping", &LuaAudioHandler::is_looping,
 		"set_looping", &LuaAudioHandler::set_looping,
-		"set_source_clip", &LuaAudioHandler::set_source_clip,
-		"set_source_generic", &LuaAudioHandler::set_source_generic
+		"set_source", &LuaAudioHandler::set_source_clip
 		);
 
 	table.new_usertype<SimpleSampleSource>("simple_sample_source", sol::no_constructor,

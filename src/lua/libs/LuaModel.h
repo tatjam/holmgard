@@ -3,6 +3,7 @@
 #include "LuaAssets.h"
 #include "assets/Model.h"
 
+// Implements management of models and also their generation from code
 class LuaModel : public LuaLib
 {
 public:

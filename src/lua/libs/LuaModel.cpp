@@ -3,6 +3,11 @@
 
 void LuaModel::load_to(sol::table &table)
 {
+	table.set_function("new_model", []()
+	{
+		auto raw = std::make_shared<Model>(GENERATED_ASSET_INFO);
+		return LuaAssetHandle<Model>(raw);
+	});
 	table.new_usertype<Node>("node", sol::no_constructor,
 		  "draw", &Node::draw,
 		  "draw_shadow", &Node::draw_shadow,
