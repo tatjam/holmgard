@@ -3,11 +3,32 @@
 
 void LuaModel::load_to(sol::table &table)
 {
-	table.set_function("new_model_builder", []()
-	{
-		return std::make_shared<ModelBuilder>();
-	});
 
+	table.new_usertype<tinygltf::Model>("model_builder", sol::no_constructor,
+		"new", []()
+		{
+			auto model = std::make_shared<tinygltf::Model>();
+			model->scenes.emplace_back();
+			model->defaultScene = 0;
+		},
+		"create_node", sol::overload(
+				sol::resolve<NodeWrapper(std::shared_ptr<tinygltf::Model>, const NodeWrapper*, const std::string&)>(&ModelBuilder::create_node),
+				sol::resolve<NodeWrapper(std::shared_ptr<tinygltf::Model>, const std::string& name)>(ModelBuilder::create_node)));
+
+	table.new_usertype<NodeWrapper>("node_wrapper", sol::no_constructor,
+		"set_transform", sol::overload(
+				sol::resolve<void(const glm::dmat4&) const>(&NodeWrapper::set_transform),
+				        sol::resolve<void(const glm::dvec3&, const glm::dvec3&, const glm::dquat&) const>(&NodeWrapper::set_transform))
+				,
+		"set_translation", &NodeWrapper::set_translation,
+		"set_scale", &NodeWrapper::set_scale,
+		"set_rotation", &NodeWrapper::set_rotation,
+		"create_primitive", &NodeWrapper::create_primitive
+		);
+
+	table.new_usertype<PrimitiveWrapper>("primitive_wrapper", sol::no_constructor,
+		"set_positions", &PrimitiveWrapper::set_positions,
+		"set_indices", &PrimitiveWrapper::set_indices);
 
 	table.new_usertype<Node>("node", sol::no_constructor,
 		  "draw", &Node::draw,

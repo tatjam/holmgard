@@ -1221,47 +1221,44 @@ void ModelColliderExtractor::load_collider_convex(btCollisionShape** target, Nod
 	target_c->optimizeConvexHull();
 }
 
-ModelBuilder::ModelBuilder()
+NodeWrapper ModelBuilder::create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name)
 {
-	model.scenes.emplace_back();
-	model.defaultScene = 0;
-
-	this->scn = &model.scenes[0];
-
+	return create_node(mod, nullptr, name);
 }
 
-tinygltf::Node* ModelBuilder::create_node(const std::string& name)
+NodeWrapper ModelBuilder::create_node(std::shared_ptr<tinygltf::Model> mod, const NodeWrapper* parent, const std::string& name)
 {
-	return create_node(nullptr, name);
-}
+	NodeWrapper wrap;
+	wrap.owner = mod;
 
-tinygltf::Node* ModelBuilder::create_node(tinygltf::Node* parent, const std::string& name)
-{
-	tinygltf::Node* node = &model.nodes.emplace_back();
-	int nid = (int)(model.nodes.size() - 1);
+	int nid = (int)(mod->nodes.size() - 1);
+	wrap.node_idx = nid;
 	if(parent)
 	{
-		parent->children.push_back(nid);
+		parent->get_node()->children.push_back(nid);
 	}
 
-	scn->nodes.push_back(nid);
+	mod->scenes[mod->defaultScene].nodes.push_back(nid);
 
-	return node;
+	return wrap;
+
 }
 
-void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dmat4 mat)
+
+void NodeWrapper::set_transform(const glm::dmat4& mat) const
 {
-	if(nod->translation.size() != 0)
+	tinygltf::Node* nod = get_node();
+	if(!nod->translation.empty())
 	{
 		logger->warn("Setting node matrix transform, overriding position");
 		nod->translation.clear();
 	}
-	if(nod->scale.size() != 0)
+	if(!nod->scale.empty())
 	{
 		logger->warn("Setting node matrix transform, overriding scale");
 		nod->scale.clear();
 	}
-	if(nod->rotation.size() != 0)
+	if(!nod->rotation.empty())
 	{
 		logger->warn("Setting node matrix transform, overriding rotation");
 		nod->rotation.clear();
@@ -1272,9 +1269,10 @@ void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dmat4 mat)
 		nod->matrix[i] = value_ptr(mat)[i];
 	}
 }
-void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dvec3 trans, glm::dvec3 scale, glm::dquat rot)
+void NodeWrapper::set_transform(const glm::dvec3& trans, const glm::dvec3& scale, const glm::dquat& rot) const
 {
-	if(nod->matrix.size() != 0)
+	tinygltf::Node* nod = get_node();
+	if(!nod->matrix.empty())
 	{
 		logger->warn("Setting node transform manually, overriding matrix");
 		nod->matrix.clear();
@@ -1292,9 +1290,10 @@ void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dvec3 trans, glm
 	nod->rotation[3] = value_ptr(rot)[3];
 }
 
-void ModelBuilder::set_node_translation(tinygltf::Node* nod, glm::dvec3 trans)
+void NodeWrapper::set_translation(glm::dvec3 trans) const
 {
-	if(nod->matrix.size() != 0)
+	tinygltf::Node* nod = get_node();
+	if(!nod->matrix.empty())
 	{
 		logger->warn("Setting node transform manually, overriding matrix");
 		nod->matrix.clear();
@@ -1307,9 +1306,10 @@ void ModelBuilder::set_node_translation(tinygltf::Node* nod, glm::dvec3 trans)
 	}
 }
 
-void ModelBuilder::set_node_scale(tinygltf::Node* nod, glm::dvec3 scale)
+void NodeWrapper::set_scale(glm::dvec3 scale) const
 {
-	if(nod->matrix.size() != 0)
+	tinygltf::Node* nod = get_node();
+	if(!nod->matrix.empty())
 	{
 		logger->warn("Setting node transform manually, overriding matrix");
 		nod->matrix.clear();
@@ -1321,9 +1321,10 @@ void ModelBuilder::set_node_scale(tinygltf::Node* nod, glm::dvec3 scale)
 		nod->scale[i] = value_ptr(scale)[i];
 	}
 }
-void ModelBuilder::set_node_rotation(tinygltf::Node* nod, glm::dquat rot)
+void NodeWrapper::set_rotation(glm::dquat rot) const
 {
-	if(nod->matrix.size() != 0)
+	tinygltf::Node* nod = get_node();
+	if(!nod->matrix.empty())
 	{
 		logger->warn("Setting node transform manually, overriding matrix");
 		nod->matrix.clear();
@@ -1336,39 +1337,51 @@ void ModelBuilder::set_node_rotation(tinygltf::Node* nod, glm::dquat rot)
 	}
 }
 
-tinygltf::Primitive* ModelBuilder::create_node_primitive(tinygltf::Node* nod)
+tinygltf::Node* NodeWrapper::get_node() const
 {
-	if(nod->mesh < 0)
-	{
-		model.meshes.emplace_back();
-		nod->mesh = model.meshes.size() - 1;
-	}
-
-	tinygltf::Primitive* prim = &model.meshes[nod->mesh].primitives.emplace_back();
-
-	return prim;
+	return &owner->nodes[node_idx];
 }
 
-void ModelBuilder::set_primitive_positions(tinygltf::Primitive *prim, std::vector<glm::dvec3> pos)
+PrimitiveWrapper NodeWrapper::create_primitive()
 {
+	tinygltf::Node* nod = get_node();
+	if(nod->mesh < 0)
+	{
+		owner->meshes.emplace_back();
+		nod->mesh = owner->meshes.size() - 1;
+	}
+
+	owner->meshes[nod->mesh].primitives.emplace_back();
+	PrimitiveWrapper wrap;
+	wrap.owner = owner;
+	wrap.node_idx = node_idx;
+	wrap.prim_idx = owner->meshes[nod->mesh].primitives.size() - 1;
+
+	return wrap;
+}
+
+void PrimitiveWrapper::set_positions(std::vector<glm::dvec3> pos)
+{
+	tinygltf::Primitive* prim = get_prim();
+
 	auto it = prim->attributes.find("POSITION");
 	logger->check(it == prim->attributes.end(), "Tried to set positions twice on primitive");
 
-	size_t cur_vertex = get_vertex_count(prim);
+	size_t cur_vertex = get_vertex_count();
 	logger->check(cur_vertex == 0 || cur_vertex == pos.size(), "Invalid vertex count on new attribute");
 
-	auto& acc = model.accessors.emplace_back();
-	prim->attributes["POSITION"] = model.accessors.size() - 1;
+	auto& acc = owner->accessors.emplace_back();
+	prim->attributes["POSITION"] = owner->accessors.size() - 1;
 	// We do simple non-interleaved buffers, and convert to floats
 	// This means a buffer for each attribute.
 	acc.count = pos.size();
 	acc.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
 	acc.byteOffset = 0;
-	auto& buf_view = model.bufferViews.emplace_back();
-	acc.bufferView = model.bufferViews.size() - 1;
+	auto& buf_view = owner->bufferViews.emplace_back();
+	acc.bufferView = owner->bufferViews.size() - 1;
 
-	auto& buf = model.buffers.emplace_back();
-	buf_view.buffer = model.buffers.size() - 1;
+	auto& buf = owner->buffers.emplace_back();
+	buf_view.buffer = owner->buffers.size() - 1;
 
 	buf.data.resize(pos.size() * sizeof(float) * 3);
 	for(size_t i = 0; i < pos.size(); i++)
@@ -1383,18 +1396,20 @@ void ModelBuilder::set_primitive_positions(tinygltf::Primitive *prim, std::vecto
 	}
 }
 
-void ModelBuilder::set_primitive_indices(tinygltf::Primitive *prim, std::vector<int> idx)
+void PrimitiveWrapper::set_indices(std::vector<int> idx)
 {
-	size_t cur_vertex = get_vertex_count(prim);
+	tinygltf::Primitive* prim = get_prim();
 
-	auto& acc = model.accessors.emplace_back();
-	prim->indices = model.accessors.size() - 1;
+	size_t cur_vertex = get_vertex_count();
 
-	auto& buf_view = model.bufferViews.emplace_back();
-	acc.bufferView = model.bufferViews.size() - 1;
+	auto& acc = owner->accessors.emplace_back();
+	prim->indices = owner->accessors.size() - 1;
 
-	auto& buf = model.buffers.emplace_back();
-	buf_view.buffer = model.buffers.size() - 1;
+	auto& buf_view = owner->bufferViews.emplace_back();
+	acc.bufferView = owner->bufferViews.size() - 1;
+
+	auto& buf = owner->buffers.emplace_back();
+	buf_view.buffer = owner->buffers.size() - 1;
 
 	buf.data.resize(idx.size() * sizeof(int));
 	for(size_t i = 0; i < idx.size(); i++)
@@ -1406,16 +1421,22 @@ void ModelBuilder::set_primitive_indices(tinygltf::Primitive *prim, std::vector<
 	}
 }
 
-size_t ModelBuilder::get_vertex_count(tinygltf::Primitive *prim)
+size_t PrimitiveWrapper::get_vertex_count()
 {
+	tinygltf::Primitive* prim = get_prim();
 	// We get only the first attribute, as we enforce same vertex count in building
 	size_t out = 0;
 	for(auto pair : prim->attributes)
 	{
-		out = model.accessors[pair.second].count;
+		out = owner->accessors[pair.second].count;
 		break;
 	}
 
 	return out;
+}
+
+tinygltf::Primitive* PrimitiveWrapper::get_prim()
+{
+	return &owner->meshes[owner->nodes[node_idx].mesh].primitives[prim_idx];
 }
 

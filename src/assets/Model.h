@@ -313,48 +313,56 @@ public:
 	static void load_collider(btCollisionShape** target, Node* n);
 };
 
-// Used to build models from lua wrapping the tricky gltf interfaces
-// A big advantage of this approach is that generated models can be serialized
-// (the alternative being a custom model class for generative models that's simpler)
-// We allow only one scene,
+
+struct NodeWrapper;
+
+// This is exposed to lua as functions of tinygltf::Model, with a custom constructor
 class ModelBuilder
 {
-private:
-	// Pointer for easy access into model
-	tinygltf::Scene* scn;
-	tinygltf::Model model;
-
- 	size_t get_vertex_count(tinygltf::Primitive* prim);
-
 public:
-
-	tinygltf::Node* create_node(const std::string& name);
-	tinygltf::Node* create_node(tinygltf::Node* parent, const std::string& name);
-
-	// These are implemented in lua as functions "of" tinygltf::Node
-	static void set_node_transform(tinygltf::Node* nod, glm::dmat4 mat);
-	static void set_node_transform(tinygltf::Node* nod, glm::dvec3 trans, glm::dvec3 scale, glm::dquat rot);
-	static void set_node_translation(tinygltf::Node* nod, glm::dvec3 trans);
-	static void set_node_scale(tinygltf::Node* nod, glm::dvec3 scale);
-	static void set_node_rotation(tinygltf::Node* nod, glm::dquat rot);
-
-	// Note that technically two nodes can point to the same mesh, this is not supported
-	// TODO: This may become necessary in the future, but requires some changes to Model too
-	tinygltf::Primitive* create_node_primitive(tinygltf::Node* msh);
+	static NodeWrapper create_node(std::shared_ptr<tinygltf::Model> mod, const NodeWrapper* parent, const std::string& name);
+	static NodeWrapper create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name);
 
 
-	void set_primitive_positions(tinygltf::Primitive* prim, std::vector<glm::dvec3> pos);
-	void set_primitive_normals(tinygltf::Primitive* prim, std::vector<glm::dvec3> nrm);
-	void set_primitive_tex0(tinygltf::Primitive* prim, std::vector<glm::dvec2> tex0);
-	void set_primitive_tex1(tinygltf::Primitive* prim, std::vector<glm::dvec2> tex1);
-	void set_primitive_tangents(tinygltf::Primitive* prim, std::vector<glm::dvec3> tgt);
-	void set_primitive_color3(tinygltf::Primitive* prim, std::vector<glm::dvec3> color3);
-	void set_primitive_color4(tinygltf::Primitive* prim, std::vector<glm::dvec4> color4);
+
+};
+
+struct PrimitiveWrapper
+{
+	size_t get_vertex_count();
+	std::shared_ptr<tinygltf::Model> owner;
+	int prim_idx;
+	int node_idx;
+	tinygltf::Primitive* get_prim();
+
+
+	void set_positions(std::vector<glm::dvec3> pos);
+	void set_normals(std::vector<glm::dvec3> nrm);
+	void set_tex0(std::vector<glm::dvec2> tex0);
+	void set_tex1(std::vector<glm::dvec2> tex1);
+	void set_tangents(std::vector<glm::dvec3> tgt);
+	void set_color3(std::vector<glm::dvec3> color3);
+	void set_color4(std::vector<glm::dvec4> color4);
 
 	// Indices must be set after atleast one of the functions before has been called
 	// so we can validate number of vertices
-	void set_primitive_indices(tinygltf::Primitive* prim, std::vector<int> idx);
+	void set_indices(std::vector<int> idx);
 
-	ModelBuilder();
+};
 
+struct NodeWrapper
+{
+	std::shared_ptr<tinygltf::Model> owner;
+	int node_idx;
+	tinygltf::Node* get_node() const;
+
+	void set_transform(const glm::dmat4& mat) const;
+	void set_transform(const glm::dvec3& trans, const glm::dvec3& scale, const glm::dquat& rot) const;
+	void set_translation(glm::dvec3 trans) const;
+	void set_scale(glm::dvec3 scale) const;
+	void set_rotation(glm::dquat rot) const;
+
+	// Note that technically two nodes can point to the same mesh, this is not supported
+	// TODO: This may become necessary in the future, but requires some changes to Model too
+	PrimitiveWrapper create_primitive();
 };
