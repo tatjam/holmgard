@@ -224,40 +224,31 @@ void Mesh::upload()
 
 		if(material->cfg.has_pos)
 			order.emplace_back("POSITION", get_accessor_fnc("POSITION"), 3);
-		if(drawable)
+		if (material->cfg.has_nrm)
+			order.emplace_back("NORMAL", get_accessor_fnc("NORMAL"), 3);
+		if (material->cfg.has_uv0)
+			order.emplace_back("TEXCOORD_0", get_accessor_fnc("TEXCOORD_0"), 2);
+		if (material->cfg.has_uv1)
+			order.emplace_back("TEXCOORD_1", get_accessor_fnc("TEXCOORD_1"), 2);
+		if (material->cfg.has_tgt)
+			order.emplace_back("TANGENT", get_accessor_fnc("TANGENT"), 6);
+		if (material->cfg.has_cl3)
+			order.emplace_back("COLOR_0", get_accessor_fnc("COLOR_0"), 3);
+		if (material->cfg.has_cl4)
+			order.emplace_back("COLOR_0", get_accessor_fnc("COLOR_0"), 4);
+		if (material->cfg.has_tgt)
 		{
-			if (material->cfg.has_nrm)
-				order.emplace_back("NORMAL", get_accessor_fnc("NORMAL"), 3);
-			if (material->cfg.has_uv0)
-				order.emplace_back("TEXCOORD_0", get_accessor_fnc("TEXCOORD_0"), 2);
-			if (material->cfg.has_uv1)
-				order.emplace_back("TEXCOORD_1", get_accessor_fnc("TEXCOORD_1"), 2);
-			if (material->cfg.has_tgt)
-				order.emplace_back("TANGENT", get_accessor_fnc("TANGENT"), 6);
-			if (material->cfg.has_cl3)
-				order.emplace_back("COLOR_0", get_accessor_fnc("COLOR_0"), 3);
-			if (material->cfg.has_cl4)
-				order.emplace_back("COLOR_0", get_accessor_fnc("COLOR_0"), 4);
+			logger->check(material->cfg.has_nrm, "Cannot have a mesh with tangents and no normal");
+			nrm_acc = get_accessor_fnc("NORMAL");
+			logger->check(nrm_acc, "Cannot have null normals in a material with tangents");
 
-			if (material->cfg.has_tgt)
+			if (prim.attributes.find("TANGENT") == prim.attributes.end())
 			{
-				logger->check(material->cfg.has_nrm, "Cannot have a mesh with tangents and no normal");
-				nrm_acc = get_accessor_fnc("NORMAL");
-				logger->check(nrm_acc, "Cannot have null normals in a material with tangents");
+				logger->warn("Could not find tangents on the model. Note for blender users:");
+				logger->warn(" - Try triangulating your mesh, there's a bug in the gltf exporter which");
+				logger->warn("   prevents tangents from being generated on non-triangulated meshes.");
 
-				if (prim.attributes.find("TANGENT") == prim.attributes.end())
-				{
-					logger->warn("Could not find tangents on the model. Note for blender users:");
-					logger->warn(" - Try triangulating your mesh, there's a bug in the gltf exporter which");
-					logger->warn("   prevents tangents from being generated on non-triangulated meshes.");
-
-				}
 			}
-
-		}
-		else
-		{
-			stride = 3;
 		}
 
 		size_t vert_count = in_model->gltf.accessors[prim.attributes["POSITION"]].count;
@@ -1229,3 +1220,202 @@ void ModelColliderExtractor::load_collider_convex(btCollisionShape** target, Nod
 	target_c->recalcLocalAabb();
 	target_c->optimizeConvexHull();
 }
+
+ModelBuilder::ModelBuilder()
+{
+	model.scenes.emplace_back();
+	model.defaultScene = 0;
+
+	this->scn = &model.scenes[0];
+
+}
+
+tinygltf::Node* ModelBuilder::create_node(const std::string& name)
+{
+	return create_node(nullptr, name);
+}
+
+tinygltf::Node* ModelBuilder::create_node(tinygltf::Node* parent, const std::string& name)
+{
+	tinygltf::Node* node = &model.nodes.emplace_back();
+	int nid = (int)(model.nodes.size() - 1);
+	if(parent)
+	{
+		parent->children.push_back(nid);
+	}
+
+	scn->nodes.push_back(nid);
+
+	return node;
+}
+
+void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dmat4 mat)
+{
+	if(nod->translation.size() != 0)
+	{
+		logger->warn("Setting node matrix transform, overriding position");
+		nod->translation.clear();
+	}
+	if(nod->scale.size() != 0)
+	{
+		logger->warn("Setting node matrix transform, overriding scale");
+		nod->scale.clear();
+	}
+	if(nod->rotation.size() != 0)
+	{
+		logger->warn("Setting node matrix transform, overriding rotation");
+		nod->rotation.clear();
+	}
+	nod->matrix.resize(16);
+	for(int i = 0; i < 16; i++)
+	{
+		nod->matrix[i] = value_ptr(mat)[i];
+	}
+}
+void ModelBuilder::set_node_transform(tinygltf::Node* nod, glm::dvec3 trans, glm::dvec3 scale, glm::dquat rot)
+{
+	if(nod->matrix.size() != 0)
+	{
+		logger->warn("Setting node transform manually, overriding matrix");
+		nod->matrix.clear();
+	}
+
+	nod->translation.resize(3);
+	nod->scale.resize(3);
+	nod->rotation.resize(4);
+	for(int i = 0; i < 3; i++)
+	{
+		nod->translation[i] = value_ptr(trans)[i];
+		nod->scale[i] = value_ptr(scale)[i];
+		nod->rotation[i] = value_ptr(rot)[i];
+	}
+	nod->rotation[3] = value_ptr(rot)[3];
+}
+
+void ModelBuilder::set_node_translation(tinygltf::Node* nod, glm::dvec3 trans)
+{
+	if(nod->matrix.size() != 0)
+	{
+		logger->warn("Setting node transform manually, overriding matrix");
+		nod->matrix.clear();
+	}
+
+	nod->translation.resize(3);
+	for(int i = 0; i < 3; i++)
+	{
+		nod->translation[i] = value_ptr(trans)[i];
+	}
+}
+
+void ModelBuilder::set_node_scale(tinygltf::Node* nod, glm::dvec3 scale)
+{
+	if(nod->matrix.size() != 0)
+	{
+		logger->warn("Setting node transform manually, overriding matrix");
+		nod->matrix.clear();
+	}
+
+	nod->scale.resize(3);
+	for(int i = 0; i < 3; i++)
+	{
+		nod->scale[i] = value_ptr(scale)[i];
+	}
+}
+void ModelBuilder::set_node_rotation(tinygltf::Node* nod, glm::dquat rot)
+{
+	if(nod->matrix.size() != 0)
+	{
+		logger->warn("Setting node transform manually, overriding matrix");
+		nod->matrix.clear();
+	}
+
+	nod->rotation.resize(4);
+	for(int i = 0; i < 4; i++)
+	{
+		nod->rotation[i] = value_ptr(rot)[i];
+	}
+}
+
+tinygltf::Primitive* ModelBuilder::create_node_primitive(tinygltf::Node* nod)
+{
+	if(nod->mesh < 0)
+	{
+		model.meshes.emplace_back();
+		nod->mesh = model.meshes.size() - 1;
+	}
+
+	tinygltf::Primitive* prim = &model.meshes[nod->mesh].primitives.emplace_back();
+
+	return prim;
+}
+
+void ModelBuilder::set_primitive_positions(tinygltf::Primitive *prim, std::vector<glm::dvec3> pos)
+{
+	auto it = prim->attributes.find("POSITION");
+	logger->check(it == prim->attributes.end(), "Tried to set positions twice on primitive");
+
+	size_t cur_vertex = get_vertex_count(prim);
+	logger->check(cur_vertex == 0 || cur_vertex == pos.size(), "Invalid vertex count on new attribute");
+
+	auto& acc = model.accessors.emplace_back();
+	prim->attributes["POSITION"] = model.accessors.size() - 1;
+	// We do simple non-interleaved buffers, and convert to floats
+	// This means a buffer for each attribute.
+	acc.count = pos.size();
+	acc.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+	acc.byteOffset = 0;
+	auto& buf_view = model.bufferViews.emplace_back();
+	acc.bufferView = model.bufferViews.size() - 1;
+
+	auto& buf = model.buffers.emplace_back();
+	buf_view.buffer = model.buffers.size() - 1;
+
+	buf.data.resize(pos.size() * sizeof(float) * 3);
+	for(size_t i = 0; i < pos.size(); i++)
+	{
+		size_t off = i * sizeof(float) * 3;
+		float xf = pos[i].x;
+		float yf = pos[i].y;
+		float zf = pos[i].z;
+		memcpy((void*)(buf.data.data() + off + 0 * sizeof(float)), (void*)&xf, sizeof(float));
+		memcpy((void*)(buf.data.data() + off + 1 * sizeof(float)), (void*)&yf, sizeof(float));
+		memcpy((void*)(buf.data.data() + off + 2 * sizeof(float)), (void*)&zf, sizeof(float));
+	}
+}
+
+void ModelBuilder::set_primitive_indices(tinygltf::Primitive *prim, std::vector<int> idx)
+{
+	size_t cur_vertex = get_vertex_count(prim);
+
+	auto& acc = model.accessors.emplace_back();
+	prim->indices = model.accessors.size() - 1;
+
+	auto& buf_view = model.bufferViews.emplace_back();
+	acc.bufferView = model.bufferViews.size() - 1;
+
+	auto& buf = model.buffers.emplace_back();
+	buf_view.buffer = model.buffers.size() - 1;
+
+	buf.data.resize(idx.size() * sizeof(int));
+	for(size_t i = 0; i < idx.size(); i++)
+	{
+		logger->check(idx[i] >= 0 && idx[i] < cur_vertex, "Out of bounds mesh index");
+
+		size_t off = i * sizeof(int);
+		memcpy((void*)(buf.data.data() + off), (void*)&idx[i], sizeof(int));
+	}
+}
+
+size_t ModelBuilder::get_vertex_count(tinygltf::Primitive *prim)
+{
+	// We get only the first attribute, as we enforce same vertex count in building
+	size_t out = 0;
+	for(auto pair : prim->attributes)
+	{
+		out = model.accessors[pair.second].count;
+		break;
+	}
+
+	return out;
+}
+

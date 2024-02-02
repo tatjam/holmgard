@@ -312,3 +312,49 @@ public:
 
 	static void load_collider(btCollisionShape** target, Node* n);
 };
+
+// Used to build models from lua wrapping the tricky gltf interfaces
+// A big advantage of this approach is that generated models can be serialized
+// (the alternative being a custom model class for generative models that's simpler)
+// We allow only one scene,
+class ModelBuilder
+{
+private:
+	// Pointer for easy access into model
+	tinygltf::Scene* scn;
+	tinygltf::Model model;
+
+ 	size_t get_vertex_count(tinygltf::Primitive* prim);
+
+public:
+
+	tinygltf::Node* create_node(const std::string& name);
+	tinygltf::Node* create_node(tinygltf::Node* parent, const std::string& name);
+
+	// These are implemented in lua as functions "of" tinygltf::Node
+	static void set_node_transform(tinygltf::Node* nod, glm::dmat4 mat);
+	static void set_node_transform(tinygltf::Node* nod, glm::dvec3 trans, glm::dvec3 scale, glm::dquat rot);
+	static void set_node_translation(tinygltf::Node* nod, glm::dvec3 trans);
+	static void set_node_scale(tinygltf::Node* nod, glm::dvec3 scale);
+	static void set_node_rotation(tinygltf::Node* nod, glm::dquat rot);
+
+	// Note that technically two nodes can point to the same mesh, this is not supported
+	// TODO: This may become necessary in the future, but requires some changes to Model too
+	tinygltf::Primitive* create_node_primitive(tinygltf::Node* msh);
+
+
+	void set_primitive_positions(tinygltf::Primitive* prim, std::vector<glm::dvec3> pos);
+	void set_primitive_normals(tinygltf::Primitive* prim, std::vector<glm::dvec3> nrm);
+	void set_primitive_tex0(tinygltf::Primitive* prim, std::vector<glm::dvec2> tex0);
+	void set_primitive_tex1(tinygltf::Primitive* prim, std::vector<glm::dvec2> tex1);
+	void set_primitive_tangents(tinygltf::Primitive* prim, std::vector<glm::dvec3> tgt);
+	void set_primitive_color3(tinygltf::Primitive* prim, std::vector<glm::dvec3> color3);
+	void set_primitive_color4(tinygltf::Primitive* prim, std::vector<glm::dvec4> color4);
+
+	// Indices must be set after atleast one of the functions before has been called
+	// so we can validate number of vertices
+	void set_primitive_indices(tinygltf::Primitive* prim, std::vector<int> idx);
+
+	ModelBuilder();
+
+};
