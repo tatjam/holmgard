@@ -137,6 +137,8 @@ private:
 	void load_node(const tinygltf::Model& model, int node, Node* parent, Model* rmodel, bool parent_draw);
 	void load_mesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, Model* rmodel, Node* node,
 				bool drawable, int mesh_idx, int prim_idx);
+
+	void generic_load();
 public:
 	Node* root;
 
@@ -151,9 +153,14 @@ public:
 	void get_gpu();
 	void free_gpu();
 
+
+
 	// For creating from code
 	Model(ASSET_INFO);
+	// Moves the model
 	Model(tinygltf::Model&& model, ASSET_INFO);
+	// Copies the model, slightly less efficient, used for generative geometry
+	Model(const tinygltf::Model& model, ASSET_INFO);
 	~Model();
 };
 
@@ -320,11 +327,8 @@ struct NodeWrapper;
 class ModelBuilder
 {
 public:
-	static NodeWrapper create_node(std::shared_ptr<tinygltf::Model> mod, const NodeWrapper* parent, const std::string& name);
+	static NodeWrapper create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name, const NodeWrapper* parent);
 	static NodeWrapper create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name);
-
-
-
 };
 
 struct PrimitiveWrapper
@@ -336,17 +340,18 @@ struct PrimitiveWrapper
 	tinygltf::Primitive* get_prim();
 
 
-	void set_positions(std::vector<glm::dvec3> pos);
-	void set_normals(std::vector<glm::dvec3> nrm);
-	void set_tex0(std::vector<glm::dvec2> tex0);
-	void set_tex1(std::vector<glm::dvec2> tex1);
-	void set_tangents(std::vector<glm::dvec3> tgt);
-	void set_color3(std::vector<glm::dvec3> color3);
-	void set_color4(std::vector<glm::dvec4> color4);
+	void set_positions(const std::vector<glm::dvec3>& pos);
+	void set_normals(const std::vector<glm::dvec3>& nrm);
+	void set_tex0(const std::vector<glm::dvec2>& tex0);
+	void set_tex1(const std::vector<glm::dvec2>& tex1);
+	void set_tangents(const std::vector<glm::dvec3>& tgt);
+	void set_color3(const std::vector<glm::dvec3>& color3);
+	void set_color4(const std::vector<glm::dvec4>& color4);
 
 	// Indices must be set after atleast one of the functions before has been called
 	// so we can validate number of vertices
-	void set_indices(std::vector<int> idx);
+	// BEWARE: Indices start at 0!
+	void set_indices(const std::vector<int>& idx);
 
 };
 

@@ -27,63 +27,6 @@
 
 
 LuaCore* lua_core;
-// This function is extremely hacky and contains multiple work-arounds
-// for how our lua code is structured
-int LoadFileRequire(lua_State* L)
-{
-	sol::state_view sview = sol::state_view(L);
-	std::string path = sol::stack::get<std::string>(L, 1);
-
-
-	bool was_module = false;
-	sol::table module_table = sview.create_table();
-
-	LuaCore::LibraryID id = LuaCore::name_to_id(path);
-
-	if (id != LuaCore::LibraryID::UNKNOWN)
-	{
-		was_module = true;
-		lua_core->load_library(module_table, id);
-	}
-
-	if (was_module)
-	{
-		// TODO: Maybe the index trick is needed here too?
-		// We have to do this weird thing to make sure the module's table
-		// is returned and not a global table
-		// Lua calls this script with only an argument, the module name
-		// Note that 'require("wathever")' won't work, you need 'local wathever = require("wathever")'!
-		std::string script = "local l = ...; local ret = __loaded_modules[l]; return ret";
-
-		sol::load_result fx = sview.load(script);
-		sol::function ffx = fx;
-		sol::stack::push(L, ffx);
-
-		sview["__loaded_modules"][path] = module_table;
-
-		return 1;
-	}
-	else
-	{
-		// WARNING FOR MODDERS: require creates only one instance!
-		auto name = hgr->assets->get_filename(path);
-		// Enforce local files, which may not be "required"
-		if(name.rfind("l_", 0) == 0)
-		{
-			logger->fatal("Tried to require {}, which is meant to be included with dofile", path);
-		}
-
-		std::string spath = hgr->assets->resolve_path(path, sview["__pkg"]);
-
-		// The package loader is nothing more than the script itself
-		std::string script = hgr->assets->load_string_raw(spath);
-		sol::load_result fx = sview.load(script, spath);
-		sol::function ffx = fx;
-		sol::stack::push(L, ffx);
-		return 1;
-
-	}
-}
 
 LuaCore::LibraryID LuaCore::name_to_id(const std::string & name)
 {
@@ -138,7 +81,7 @@ void LuaCore::load_library(sol::table& table, LibraryID id)
 void LuaCore::load(sol::state& to, const std::string& pkg)
 {
 	to.open_libraries(
-		sol::lib::base, sol::lib::package, sol::lib::coroutine,
+		sol::lib::base, sol::lib::coroutine,
 		sol::lib::string, sol::lib::math, sol::lib::table, sol::lib::utf8,
 		sol::lib::jit);
 
@@ -147,7 +90,7 @@ void LuaCore::load(sol::state& to, const std::string& pkg)
 	to.create_named_table("__loaded_modules");
 	load((sol::table&)to.globals(), pkg);
 
-	to.add_package_loader(LoadFileRequire, true);
+	//to.add_package_loader(LoadFileRequire, true);
 
 	// We also create Holmgard usertype (but don't actually set "hgr" to a value, as it may not be available)
 	// so that all subsystems can be accessed without having many globals
@@ -221,6 +164,73 @@ void LuaCore::load(sol::table& to, const std::string& pkg)
 		sol::function fnc = lresult;
 		sol::set_environment(env, fnc);
 		return std::make_tuple(fnc, std::string(""));
+	};
+
+	to["require"] = [](const std::string& path, sol::this_environment te, sol::this_state ts)
+	{
+		sol::environment env = te;
+		sol::state_view sv = ts;
+
+		LuaCore::LibraryID id = LuaCore::name_to_id(path);
+		sol::table tb;
+
+		if (id != LuaCore::LibraryID::UNKNOWN)
+		{
+			std::string idname = "__corelib_";
+			idname.append(path);
+			if(sv[idname] == sol::nil)
+			{
+				sol::table module_table = sv.create_table();
+				lua_core->load_library(module_table, id);
+				sv[idname] = module_table;
+				tb = module_table;
+			}
+
+			tb = sv[idname];
+		}
+		else
+		{
+			// Not a module, in that case it must be a file, or a typo
+			auto name = hgr->assets->get_filename(path);
+			logger->check(name.rfind("l_", 0) != 0, "Tried to require {}, which is meant to be included with dofile", path);
+
+			std::string pkg = env["__pkg"];
+			if(pkg == "__UNDEFINED__")
+			{
+				// We are running on the global environment, use package stack instead
+				pkg = hgr->assets->get_current_package();
+			}
+			std::string fpath = hgr->assets->resolve_path(path, pkg);
+			logger->check(hgr->assets->file_exists(fpath), "require(\"{}\") cannot be resolved to a package or lua file (searched for {})", path, fpath);
+
+			// It may have already been loaded, in that case return it
+			std::string idname = "__required_" + fpath;
+			if(sv[idname] == sol::nil)
+			{
+				// Load the file
+				auto[sub_pkg, _] = hgr->assets->get_package_and_name(path, pkg);
+				std::string script = hgr->assets->load_string_raw(fpath);
+
+				std::string orig = hgr->assets->get_current_package();
+				hgr->assets->set_current_package(sub_pkg);
+
+				sol::load_result fx = sv.load(script, fpath);
+				sol::function ffx = fx;
+				// Note that the function runs on the global environment, but we
+				// set package previously!
+				sol::table result = ffx();
+				sv[idname] = result;
+				tb = result;
+
+				// Restore default package
+				hgr->assets->set_current_package(orig);
+			}
+
+			tb = sv[idname];
+		}
+
+		return tb;
+
 	};
 }
 

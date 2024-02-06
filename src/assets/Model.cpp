@@ -464,14 +464,8 @@ void Model::free_gpu()
 	}
 }
 
-
-
-Model::Model(tinygltf::Model&& model, ASSET_INFO) : Asset(ASSET_INFO_P)
+void Model::generic_load()
 {
-	this->gltf = std::move(model);
-	gpu_users = 0;
-	uploaded = false;
-
 	const tinygltf::Scene scene = gltf.scenes[gltf.defaultScene];
 	// Load recursively all the nodes
 	Node* scene_node = new Node();
@@ -484,6 +478,26 @@ Model::Model(tinygltf::Model&& model, ASSET_INFO) : Asset(ASSET_INFO_P)
 	}
 
 	root = scene_node;
+
+}
+
+Model::Model(const tinygltf::Model& model, ASSET_INFO) : Asset(ASSET_INFO_P)
+{
+	this->gltf = model;
+	gpu_users = 0;
+	uploaded = false;
+
+	generic_load();
+}
+
+
+Model::Model(tinygltf::Model&& model, ASSET_INFO) : Asset(ASSET_INFO_P)
+{
+	this->gltf = std::move(model);
+	gpu_users = 0;
+	uploaded = false;
+
+	generic_load();
 }
 
 Model::Model(ASSET_INFO) : Asset(ASSET_INFO_P)
@@ -750,6 +764,7 @@ void Model::load_mesh(const tinygltf::Model& model, const tinygltf::Primitive &p
 	}
 
 }
+
 
 glm::dmat4 Node::get_tform(const Node* n) const
 {
@@ -1223,10 +1238,10 @@ void ModelColliderExtractor::load_collider_convex(btCollisionShape** target, Nod
 
 NodeWrapper ModelBuilder::create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name)
 {
-	return create_node(mod, nullptr, name);
+	return create_node(mod, name, nullptr);
 }
 
-NodeWrapper ModelBuilder::create_node(std::shared_ptr<tinygltf::Model> mod, const NodeWrapper* parent, const std::string& name)
+NodeWrapper ModelBuilder::create_node(std::shared_ptr<tinygltf::Model> mod, const std::string& name, const NodeWrapper* parent)
 {
 	NodeWrapper wrap;
 	wrap.owner = mod;
@@ -1360,7 +1375,7 @@ PrimitiveWrapper NodeWrapper::create_primitive()
 	return wrap;
 }
 
-void PrimitiveWrapper::set_positions(std::vector<glm::dvec3> pos)
+void PrimitiveWrapper::set_positions(const std::vector<glm::dvec3>& pos)
 {
 	tinygltf::Primitive* prim = get_prim();
 
@@ -1396,11 +1411,12 @@ void PrimitiveWrapper::set_positions(std::vector<glm::dvec3> pos)
 	}
 }
 
-void PrimitiveWrapper::set_indices(std::vector<int> idx)
+void PrimitiveWrapper::set_indices(const std::vector<int>& idx)
 {
 	tinygltf::Primitive* prim = get_prim();
 
 	size_t cur_vertex = get_vertex_count();
+	logger->check(cur_vertex > 0, "Tried to set indices on a primitive without vertices");
 
 	auto& acc = owner->accessors.emplace_back();
 	prim->indices = owner->accessors.size() - 1;
